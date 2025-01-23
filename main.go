@@ -1,7 +1,7 @@
 package main
 
-import "log"
+import "github.com/sermuns/MEREAD/cmd"
 
-func main(){
-	log.Println("MERERAD")
+func main() {
+	cmd.Execute()
 }
