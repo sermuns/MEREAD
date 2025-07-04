@@ -1,0 +1,2 @@
+- [ ] hardcode styles
+- [ ] embed Noto Sans

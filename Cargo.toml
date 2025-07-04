@@ -1,0 +1,19 @@
+[package]
+name = "meread"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+anyhow = "1"
+tokio = { version = "1", features = ["full"] }
+axum = "0.8"
+tower-livereload = "0.9.6"
+indoc = "2.0.6"
+axum_html_minifier = "1.0.2"
+markdown = "1.0.0"
+tower-http = { version = "0.6.6", features = ["fs"] }
+notify = "8.1.0"
+clap = { version = "4.5.40", features = ["derive"] }
+
+[profile.release]
+strip = true
