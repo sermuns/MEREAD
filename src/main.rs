@@ -1,3 +1,4 @@
+use anyhow::{Context, Result};
 use askama::Template;
 use axum::{Router, http::StatusCode, response::Html, routing::get};
 use clap::Parser;
@@ -16,17 +17,34 @@ struct Args {
     /// Directory to serve
     #[arg(default_value = ".")]
     path: PathBuf,
+
+    /// Optional: run once and export the rendered markdown to given html path
+    #[arg(long, short)]
+    export_path: Option<PathBuf>,
 }
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
+    if let Some(export_path) = &args.export_path {
+        let markdown_content =
+            fs::read_to_string("README.md").context("Failed to read README.md")?;
+        let rendered_html = render_markdown(markdown_content)
+            .await
+            .context("Failed to render markdown")?;
+
+        fs::write(export_path, rendered_html)
+            .context(format!("Failed to write to {}", export_path.display()))?;
+        println!("Exported rendered markdown to {}", export_path.display());
+        return Ok(());
+    }
+
     let livereload_layer = LiveReloadLayer::new();
     let reloader = livereload_layer.reloader();
 
     let app = Router::new()
-        .route("/", get(render_markdown))
+        .route("/", get(serve_markdown))
         .fallback_service(ServeDir::new(
             include_dir!("$CARGO_MANIFEST_DIR/assets").path(),
         ))
@@ -53,33 +71,38 @@ struct HtmlTemplate<'a> {
     contents: &'a str,
 }
 
-async fn render_markdown() -> Result<Html<String>, (StatusCode, String)> {
+async fn render_markdown(markdown_content: String) -> anyhow::Result<String> {
     let body_contents = markdown::to_html_with_options(
-        &fs::read_to_string("README.md").map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to read README.md: {}", e.to_string()),
-            )
-        })?,
-        &markdown::Options::gfm(),
+        &markdown_content,
+        &markdown::Options {
+            compile: markdown::CompileOptions {
+                allow_dangerous_html: true,
+                ..markdown::CompileOptions::default()
+            },
+            ..markdown::Options::gfm()
+        },
     )
-    .map_err(|e| {
+    .map_err(|e| anyhow::anyhow!("Failed to convert markdown to HTML: {}", e))?;
+
+    let rendered_html = HtmlTemplate {
+        title: "hehe",
+        contents: &body_contents,
+    }
+    .render()
+    .map_err(|e| anyhow::anyhow!("Failed to render template: {}", e))?;
+
+    Ok(rendered_html)
+}
+
+async fn serve_markdown() -> Result<Html<String>, (StatusCode, String)> {
+    let markdown_content = fs::read_to_string("README.md").map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to render markdown: {}", e.to_string()),
+            format!("Failed to read README.md: {}", e),
         )
     })?;
-    Ok(Html(
-        HtmlTemplate {
-            title: "hehe",
-            contents: &body_contents,
-        }
-        .render()
-        .map_err(|e| {
-            (
-                StatusCode::INTERNAL_SERVER_ERROR,
-                format!("Failed to render template: {}", e.to_string()),
-            )
-        })?,
-    ))
+
+    Ok(Html(render_markdown(markdown_content).await.map_err(
+        |e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
+    )?))
 }
