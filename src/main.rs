@@ -13,19 +13,19 @@ use tower_livereload::LiveReloadLayer;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Path to markdown file. If directory, fallback to README.md
-    #[arg(default_value = ".")]
+    /// Markdown file to render. Falls back to README.md if directory.
+    #[arg(default_value = "README.md")]
     path: PathBuf,
 
-    /// (If supplied) export the rendered markdown to given html path
+    /// (If supplied) export the rendered markdown as HTML to the specified path.
     #[arg(long, short)]
     export_path: Option<PathBuf>,
 
-    /// Address to bind the server to
+    /// Address to bind the server to.
     #[arg(long, short, default_value = "localhost:3000")]
     address: String,
 
-    /// Open rendered markdown in default browser
+    /// Open rendered markdown in default browser.
     #[arg(long, short)]
     open: bool,
 }
@@ -44,6 +44,7 @@ async fn main() -> anyhow::Result<()> {
         args.path.clone()
     };
 
+    // TODO: bundle/hardcode styles and font into HTML
     if let Some(export_path) = &args.export_path {
         let markdown_content =
             fs::read_to_string(&markdown_file_path).context("Failed to read markdown file")?;
