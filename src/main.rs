@@ -6,7 +6,6 @@ use clap::Parser;
 use notify::Watcher;
 use rust_embed::RustEmbed;
 use std::fs;
-use std::net::SocketAddr;
 use std::path::PathBuf;
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
@@ -19,9 +18,17 @@ struct Args {
     #[arg(default_value = ".")]
     path: PathBuf,
 
-    /// Optional: run once and export the rendered markdown to given html path
+    /// (If supplied) export the rendered markdown to given html path
     #[arg(long, short)]
     export_path: Option<PathBuf>,
+
+    /// Address to bind the server to
+    #[arg(long, short, default_value = "localhost:3000")]
+    address: String,
+
+    /// Open rendered markdown in default browser
+    #[arg(long, short)]
+    open: bool,
 }
 
 #[derive(RustEmbed, Clone)]
@@ -58,10 +65,16 @@ async fn main() -> anyhow::Result<()> {
 
     watcher.watch(&args.path, notify::RecursiveMode::Recursive)?;
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
-    let listener = TcpListener::bind(addr).await?;
+    let listener = TcpListener::bind(&args.address).await?;
 
-    println!("Serving {:?} on http://{}", args.path, addr);
+    println!("Serving {:?} on http://{}", &args.path, &args.address);
+
+    if args.open {
+        if let Err(e) = open::that(format!("http://{}", &args.address)) {
+            eprintln!("Failed to open browser: {}", e);
+        }
+    }
+
     axum::serve(listener, app).await?;
 
     Ok(())

@@ -23,5 +23,3 @@
 - [ ] Support !NOTE etc. GFM features.
 
 - [ ] Support more than GFM.
-
-- [ ] Add `--open` flag.

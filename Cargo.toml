@@ -16,6 +16,7 @@ clap = { version = "4.5.40", features = ["derive"] }
 askama = "0.14.0"
 axum-embed = "0.1.0"
 rust-embed = "8.7.2"
+open = "5.3.2"
 
 [profile.release]
 strip = true
