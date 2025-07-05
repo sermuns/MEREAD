@@ -14,6 +14,8 @@ markdown = "1.0.0"
 tower-http = { version = "0.6.6", features = ["fs"] }
 notify = "8.1.0"
 clap = { version = "4.5.40", features = ["derive"] }
+askama = "0.14.0"
+include_dir = "0.7.4"
 
 [profile.release]
 strip = true

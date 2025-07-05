@@ -1,5 +1,7 @@
+use askama::Template;
 use axum::{Router, http::StatusCode, response::Html, routing::get};
 use clap::Parser;
+use include_dir::include_dir;
 use notify::Watcher;
 use std::fs;
 use std::net::SocketAddr;
@@ -11,6 +13,7 @@ use tower_livereload::LiveReloadLayer;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
+    /// Directory to serve
     #[arg(default_value = ".")]
     path: PathBuf,
 }
@@ -24,6 +27,9 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/", get(render_markdown))
+        .fallback_service(ServeDir::new(
+            include_dir!("$CARGO_MANIFEST_DIR/assets").path(),
+        ))
         .fallback_service(ServeDir::new(&args.path))
         .layer(livereload_layer);
 
@@ -38,6 +44,13 @@ async fn main() -> anyhow::Result<()> {
     axum::serve(listener, app).await?;
 
     Ok(())
+}
+
+#[derive(Template)]
+#[template(path = "template.html")]
+struct HtmlTemplate<'a> {
+    title: &'a str,
+    contents: &'a str,
 }
 
 async fn render_markdown() -> Result<Html<String>, (StatusCode, String)> {
@@ -56,19 +69,17 @@ async fn render_markdown() -> Result<Html<String>, (StatusCode, String)> {
             format!("Failed to render markdown: {}", e.to_string()),
         )
     })?;
-    let document = format!(
-        "<!DOCTYPE html>
-        <html>
-        <head>
-            <meta charset='UTF-8'>
-            <meta name='viewport' content='width=device-width, initial-scale=1.0'>
-            <title>Markdown Viewer</title>
-        </head>
-        <body>
-            {}
-        </body>
-        </html>",
-        body_contents
-    );
-    Ok(Html(document))
+    Ok(Html(
+        HtmlTemplate {
+            title: "hehe",
+            contents: &body_contents,
+        }
+        .render()
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to render template: {}", e.to_string()),
+            )
+        })?,
+    ))
 }
