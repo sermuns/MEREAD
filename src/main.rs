@@ -1,9 +1,10 @@
 use anyhow::{Context, Result};
 use askama::Template;
 use axum::{Router, http::StatusCode, response::Html, routing::get};
+use axum_embed::ServeEmbed;
 use clap::Parser;
-use include_dir::include_dir;
 use notify::Watcher;
+use rust_embed::RustEmbed;
 use std::fs;
 use std::net::SocketAddr;
 use std::path::PathBuf;
@@ -22,6 +23,10 @@ struct Args {
     #[arg(long, short)]
     export_path: Option<PathBuf>,
 }
+
+#[derive(RustEmbed, Clone)]
+#[folder = "assets/"]
+struct Assets;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -45,9 +50,7 @@ async fn main() -> anyhow::Result<()> {
 
     let app = Router::new()
         .route("/", get(serve_markdown))
-        .fallback_service(ServeDir::new(
-            include_dir!("$CARGO_MANIFEST_DIR/assets").path(),
-        ))
+        .nest_service("/assets", ServeEmbed::<Assets>::new())
         .fallback_service(ServeDir::new(&args.path))
         .layer(livereload_layer);
 
