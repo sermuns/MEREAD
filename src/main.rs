@@ -5,10 +5,7 @@ use axum_embed::ServeEmbed;
 use clap::Parser;
 use notify::Watcher;
 use rust_embed::RustEmbed;
-use std::{
-    fs,
-    path::{Path, PathBuf},
-};
+use std::{fs, path::PathBuf};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use tower_livereload::LiveReloadLayer;
@@ -41,7 +38,7 @@ struct Assets;
 async fn main() -> anyhow::Result<()> {
     let args = Args::parse();
 
-    let markdown_file = if args.path.is_dir() {
+    let markdown_file_path = if args.path.is_dir() {
         args.path.join("README.md")
     } else {
         args.path.clone()
@@ -49,10 +46,13 @@ async fn main() -> anyhow::Result<()> {
 
     if let Some(export_path) = &args.export_path {
         let markdown_content =
-            fs::read_to_string(&markdown_file).context("Failed to read markdown file")?;
-        let rendered_html = render_markdown(&markdown_content)
-            .await
-            .context("Failed to render markdown")?;
+            fs::read_to_string(&markdown_file_path).context("Failed to read markdown file")?;
+        let rendered_html = render_markdown(
+            &markdown_content,
+            markdown_file_path.file_name().unwrap().to_str().unwrap(),
+        )
+        .await
+        .context("Failed to render markdown")?;
 
         fs::write(export_path, rendered_html)
             .context(format!("Failed to write to {}", export_path.display()))?;
@@ -64,30 +64,13 @@ async fn main() -> anyhow::Result<()> {
     let reloader = livereload_layer.reloader();
 
     let app = Router::new()
-        .route(
-            "/",
-            get({
-                let markdown_file = markdown_file.clone();
-                move || serve_markdown(markdown_file.clone())
-            }),
-        )
+        .route("/", get(move || serve_markdown(markdown_file_path.clone())))
         .nest_service("/assets", ServeEmbed::<Assets>::new())
         .fallback_service(ServeDir::new(&args.path))
         .layer(livereload_layer);
 
     let mut watcher = notify::recommended_watcher(move |_| reloader.reload())?;
-
     watcher.watch(&args.path, notify::RecursiveMode::Recursive)?;
-
-    #[cfg(debug_assertions)]
-    {
-        watcher.unwatch(Path::new("assets")).ok();
-        watcher.unwatch(Path::new("target")).ok();
-    }
-
-    let listener = TcpListener::bind(&args.address).await?;
-
-    println!("Serving {:?} on http://{}", &args.path, &args.address);
 
     if args.open {
         if let Err(e) = open::that(format!("http://{}", &args.address)) {
@@ -95,6 +78,9 @@ async fn main() -> anyhow::Result<()> {
         }
     }
 
+    println!("Serving {:?} on http://{}", &args.path, &args.address);
+
+    let listener = TcpListener::bind(&args.address).await?;
     axum::serve(listener, app).await?;
 
     Ok(())
@@ -107,8 +93,8 @@ struct HtmlTemplate<'a> {
     contents: &'a str,
 }
 
-async fn render_markdown(markdown_content: &str) -> anyhow::Result<String> {
-    let body_contents = markdown::to_html_with_options(
+async fn render_markdown(markdown_content: &str, title: &str) -> anyhow::Result<String> {
+    let contents = markdown::to_html_with_options(
         &markdown_content,
         &markdown::Options {
             compile: markdown::CompileOptions {
@@ -121,8 +107,8 @@ async fn render_markdown(markdown_content: &str) -> anyhow::Result<String> {
     .map_err(|e| anyhow::anyhow!("Failed to convert markdown to HTML: {}", e))?;
 
     let rendered_html = HtmlTemplate {
-        title: "hehe",
-        contents: &body_contents,
+        title: &title,
+        contents: &contents,
     }
     .render()
     .map_err(|e| anyhow::anyhow!("Failed to render template: {}", e))?;
@@ -138,7 +124,12 @@ async fn serve_markdown(markdown_file_path: PathBuf) -> Result<Html<String>, (St
         )
     })?;
 
-    Ok(Html(render_markdown(&markdown_content).await.map_err(
-        |e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()),
-    )?))
+    Ok(Html(
+        render_markdown(
+            &markdown_content,
+            markdown_file_path.file_name().unwrap().to_str().unwrap(),
+        )
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?,
+    ))
 }
