@@ -1,0 +1,6 @@
+base_url = "https://meread.samake.se"
+compile_sass = false
+build_search_index = true
+
+[markdown]
+highlight_code = true
