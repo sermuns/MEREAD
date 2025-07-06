@@ -27,14 +27,20 @@
 
 :root {
 	font-family: "Noto Sans", sans-serif;
-	font-size: 18px;
-	--borderColor: #d1d9e0b3;
+	font-size: 16px;
+	--borderColor-default: #d1d9e0;
+	--borderColor-muted: #d1d9e0b3;
+	--bgColor-default: #fff;
+	--bgColor-muted: #f6f8fa;
+}
+
+* {
+	box-sizing: border-box;
 }
 
 body {
-	box-sizing: border-box;
 	padding: 1rem;
-	width: min(100%, 50rem);
+	width: min(100%, 100ch);
 	margin: auto;
 }
 
@@ -44,7 +50,11 @@ p {
 
 strong,
 h1,
-h2 {
+h2,
+h3,
+h4,
+h5,
+h6 {
 	font-weight: 600;
 }
 
@@ -52,11 +62,15 @@ li + li {
 	margin-top: 0.7em;
 }
 
-pre > code {
-	padding: 1rem;
-	display: block;
-	line-height: 1.5;
+pre {
+	display: flex;
 	background-color: #f6f8fa;
+	line-height: 1.5;
+	padding: 0.5rem;
+	align-items: flex-start;
+	> code {
+		flex: 1;
+	}
 }
 
 code {
@@ -66,11 +80,11 @@ code {
 	margin: 0;
 	white-space: break-spaces;
 	border-radius: 6px;
-	background-color: #f0f1f2;
 }
 
 p > code {
 	color: rgb(31, 35, 40);
+	background-color: #f0f1f2;
 }
 
 /* footnote */
@@ -85,12 +99,12 @@ sup > a {
 
 h1,
 h2 {
-	border-bottom: 1px solid var(--borderColor);
+	border-bottom: 1px solid var(--borderColor-default);
 }
 
 section.footnotes {
 	color: #59636e;
-	border-top: 1px solid var(--borderColor);
+	border-top: 1px solid var(--borderColor-default);
 	font-size: 70%;
 	ol {
 		padding-left: 1rem;
@@ -103,9 +117,27 @@ section.footnotes {
 a {
 	color: #0969da;
 	text-underline-offset: 0.2rem;
+	cursor: pointer;
 }
 
 img {
 	max-width: 100%;
 	height: auto;
+}
+
+table {
+	width: 100%;
+	overflow: auto;
+	border-collapse: collapse;
+	td,
+	th {
+		padding: 6px 13px;
+		border: 1px solid var(--borderColor-default);
+	}
+	tr {
+		background-color: var(--bgColor-default);
+		&:nth-child(2n) {
+			background-color: var(--bgColor-muted);
+		}
+	}
 }

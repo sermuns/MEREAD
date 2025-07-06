@@ -1,9 +1,9 @@
 - Correct styling
   - Line spacings
-  - Tables
+
+- Darkmode
 
 - Support more GFM features.
-  - Copy button on code block
   - !NOTE etc. Admonitions
   - MathJax
   - Mermaid
