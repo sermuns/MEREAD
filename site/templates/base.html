@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="sv">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1" />
+		<title>
+			{% if page.title %}{{ page.title }} -{% endif %} {{ config.title }}
+		</title>
+		<meta
+			name="description"
+			content="{% block description %}{{ config.description }}{% endblock %}"
+		/>
+		<link
+			rel="stylesheet"
+			href="{{ get_url(path='styles.css') }}"
+			type="text/css"
+		/>
+		{% block xhead %}{% endblock xhead %}
+	</head>
+	<body>
+		<header>
+			<img src="{{get_url(path='banner.svg')}}" />
+		</header>
+
+		<main>
+			{% block content %} {{ section.content | safe }} {% endblock content %}
+		</main>
+	</body>
+</html>

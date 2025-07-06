@@ -1,0 +1,40 @@
+name: Deploy site
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    permissions:
+      id-token: write # to use actions/deploy-pages
+      pages: write # to push to a github pages site
+    steps:
+
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with: 
+          working_directory: site
+
+      - name: Build website
+        run: zola build
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: site/public
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

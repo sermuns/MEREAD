@@ -1,0 +1,16 @@
+:root {
+		  font-family: "Libertinus Sans", sans-serif;
+		  background-color: #dad2c5ff;
+		  font-size: 20px;
+}
+
+body {
+		  width: min(100%, 100ch);
+		  margin: auto;
+		  box-sizing: border-box;
+		  padding: 1rem;
+}
+
+img {
+		  max-width: 100%;
+}
