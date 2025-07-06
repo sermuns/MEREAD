@@ -1,7 +1,12 @@
 [package]
 name = "meread"
-version = "0.0.3"
+version = "0.0.4"
+description = "preview github flavored markdown locally"
+repository = "https://github.com/rust-lang/cargo"
+license = "WTFPL"
 edition = "2024"
+keywords = ["readme", "markdown", "preview", "server"]
+categories = ["command-line-utilities", "web-programming::http-server"]
 
 [dependencies]
 anyhow = "1"
