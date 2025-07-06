@@ -14,7 +14,7 @@ use tower_livereload::LiveReloadLayer;
 #[command(version, about, long_about = None)]
 struct Args {
     /// Markdown file to render. Falls back to README.md if directory.
-    #[arg(default_value = "README.md")]
+    #[arg(default_value = ".")]
     path: PathBuf,
 
     /// (If supplied) export the rendered markdown as HTML to the specified path.
