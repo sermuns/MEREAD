@@ -74,19 +74,19 @@ jobs:
         run: |
           mkdir target/stage
           cd target/${{ matrix.target }}/release
-          7z a ../../stage/${{ env.CRATE_NAME }}-${{ steps.extract_tag.outputs.tag }}-${{ matrix.name }} ${{ env.CRATE_NAME }}.exe
+          7z a ../../stage/${{ env.CRATE_NAME }}-${{ matrix.name }} ${{ env.CRATE_NAME }}.exe
           cd -
       - name: Post Setup | Prepare artifacts [-nix]
         if: matrix.os != 'windows-latest'
         run: |
           mkdir target/stage
           cd target/${{ matrix.target }}/release
-          tar czvf ../../stage/${{ env.CRATE_NAME }}-${{ steps.extract_tag.outputs.tag }}-${{ matrix.name }} ${{ env.CRATE_NAME }}
+          tar czvf ../../stage/${{ env.CRATE_NAME }}-${{ matrix.name }} ${{ env.CRATE_NAME }}
           cd -
       - name: Post Setup | Upload artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.CRATE_NAME }}-${{ steps.extract_tag.outputs.tag }}-${{ matrix.name }}
+          name: ${{ env.CRATE_NAME }}-${{ matrix.name }}
           path: target/stage/*
           # Idempotency: overwrite artefact by name if we're rerunning the deployment
           overwrite: true

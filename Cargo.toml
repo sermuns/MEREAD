@@ -1,6 +1,6 @@
 [package]
 name = "meread"
-version = "0.1.0"
+version = "0.1.1"
 description = "preview github flavored markdown locally"
 repository = "https://github.com/rust-lang/cargo"
 license = "WTFPL"
