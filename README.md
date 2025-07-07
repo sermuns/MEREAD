@@ -53,7 +53,7 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
 - Using [`ubi`](https://github.com/houseabsolute/ubi):
 
   ```bash
-  ubi install meread
+  ubi -p sermuns/meread
   ```
 
 - Using [`mise`](https://github.com/jdx/mise):
