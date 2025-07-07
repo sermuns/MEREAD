@@ -1,4 +1,4 @@
-<img alt="MEREAD" src="media/banner.svg">
+<img alt="MEREAD" src="media/banner.png">
 <div align="center">
   <p>
   <em>
