@@ -25,7 +25,7 @@ jobs:
 
       - run: |
           mkdir public
-          mv index.html assets public/
+          mv index.html media assets public/
 
       - uses: actions/configure-pages@v4
 
