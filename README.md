@@ -1,4 +1,7 @@
-<img alt="MEREAD" src="media/banner.png">
+<a href="https://github.com/sermuns/meread">
+  <img alt="MEREAD" src="media/banner.png">
+</a>
+
 <div align="center">
   <p>
   <em>
