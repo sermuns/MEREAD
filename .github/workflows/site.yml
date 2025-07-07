@@ -17,7 +17,9 @@ jobs:
 
       - uses: jdx/mise-action@v2
         with: 
-          install_args: "ubi:sermuns/meread@latest"
+          mise_toml: |
+            [tools]
+            "ubi:sermuns/meread" = "latest"
 
       - run: meread README.md -e index.html
 
