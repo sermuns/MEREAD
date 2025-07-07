@@ -1,0 +1,35 @@
+name: Publish README on GitHub pages
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-24.04
+    permissions:
+
+      id-token: write # to use actions/deploy-pages
+      pages: write # to push to a github pages site
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: jdx/mise-action@v2
+        with: 
+          install_args: "ubi:sermuns/meread"
+
+      - run: meread README.md -e index.html
+
+      - run: |
+          mkdir public
+          mv index.html assets public/
+
+      - uses: actions/configure-pages@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      - id: deployment
+        uses: actions/deploy-pages@v4
