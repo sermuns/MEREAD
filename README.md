@@ -80,3 +80,24 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
   cd meread
   cargo install
   ```
+
+### Using Docker
+
+```
+docker run --rm -p 3000:3000 -v .:/app ghcr.io/sermuns/schemgo -a 0.0.0.0:3000
+```
+
+> ![IMPORTANT]
+> To access the rendered page when using the docker approach, make sure the container is serving to the host machine. Easiest is to bind to all interfaces. Do this with flag `--address` set to `0.0.0.0:3000`.
+>
+> You can of course choose any port you want, but remember to also open the same port in the docker command, e.g. `-p 3000:3000`.
+
+That's a bit of a mouthful. You could add an alias in your bashrc:
+```bash
+alias meread='docker run --rm -p 3000:3000 -v .:/app ghcr.io/sermuns/meread -a 0.0.0.0:3000
+```
+
+
+> [!IMPORTANT]
+> Key information users need to know to achieve their goal.
+
