@@ -17,9 +17,9 @@ struct Args {
     #[arg(default_value = ".")]
     path: PathBuf,
 
-    /// (If supplied) export the rendered markdown as HTML to the specified path.
+    /// (If supplied) export the rendered markdown as HTML to the specified directory.
     #[arg(long, short)]
-    export_path: Option<PathBuf>,
+    export_dir: Option<PathBuf>,
 
     /// Address to bind the server to.
     #[arg(long, short, default_value = "localhost:3000")]
@@ -45,7 +45,7 @@ async fn main() -> anyhow::Result<()> {
     };
 
     // TODO: bundle/hardcode styles and font into HTML
-    if let Some(export_path) = &args.export_path {
+    if let Some(export_dir) = &args.export_dir {
         let markdown_content =
             fs::read_to_string(&markdown_file_path).context("Failed to read markdown file")?;
         let rendered_html = render_markdown(
@@ -55,9 +55,41 @@ async fn main() -> anyhow::Result<()> {
         .await
         .context("Failed to render markdown")?;
 
-        fs::write(export_path, rendered_html)
-            .context(format!("Failed to write to {}", export_path.display()))?;
-        println!("Exported rendered markdown to {}", export_path.display());
+        if export_dir.exists() {
+            return Err(anyhow::anyhow!(
+                "Export directory already exists: {}",
+                export_dir.display()
+            ));
+        }
+
+        fs::create_dir_all(export_dir).context(format!(
+            "Failed to create export directory: {}",
+            export_dir.display()
+        ))?;
+
+        fs::write(export_dir.join("index.html"), rendered_html)
+            .context(format!("Failed to write to {}", export_dir.display()))?;
+        println!("Exported rendered markdown to {}", export_dir.display());
+
+        // Dump embedded assets
+        let assets_export_dir = export_dir.join("assets");
+        fs::create_dir_all(&assets_export_dir).context(format!(
+            "Failed to create assets export directory: {}",
+            assets_export_dir.display()
+        ))?;
+
+        for file_name in Assets::iter() {
+            let asset_path = assets_export_dir.join(file_name.as_ref());
+            let asset_content = Assets::get(file_name.as_ref())
+                .context(format!("Failed to get embedded asset: {}", file_name))?
+                .data;
+
+            fs::write(&asset_path, asset_content).context(format!(
+                "Failed to write embedded asset to: {}",
+                asset_path.display()
+            ))?;
+        }
+
         return Ok(());
     }
 
