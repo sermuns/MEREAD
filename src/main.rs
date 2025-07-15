@@ -81,7 +81,7 @@ async fn main() -> anyhow::Result<()> {
         for file_name in Assets::iter() {
             let asset_path = assets_export_dir.join(file_name.as_ref());
             let asset_content = Assets::get(file_name.as_ref())
-                .context(format!("Failed to get embedded asset: {}", file_name))?
+                .context(format!("Failed to get embedded asset: {file_name}"))?
                 .data;
 
             fs::write(&asset_path, asset_content).context(format!(
@@ -107,7 +107,7 @@ async fn main() -> anyhow::Result<()> {
 
     if args.open {
         if let Err(e) = open::that(format!("http://{}", &args.address)) {
-            eprintln!("Failed to open browser: {}", e);
+            eprintln!("Failed to open browser: {e}");
         }
     }
 
@@ -128,7 +128,7 @@ struct HtmlTemplate<'a> {
 
 async fn render_markdown(markdown_content: &str, title: &str) -> anyhow::Result<String> {
     let contents = markdown::to_html_with_options(
-        &markdown_content,
+        markdown_content,
         &markdown::Options {
             compile: markdown::CompileOptions {
                 allow_dangerous_html: true,
@@ -140,7 +140,7 @@ async fn render_markdown(markdown_content: &str, title: &str) -> anyhow::Result<
     .map_err(|e| anyhow::anyhow!("Failed to convert markdown to HTML: {}", e))?;
 
     let rendered_html = HtmlTemplate {
-        title: &title,
+        title,
         contents: &contents,
     }
     .render()
@@ -153,7 +153,7 @@ async fn serve_markdown(markdown_file_path: PathBuf) -> Result<Html<String>, (St
     let markdown_content = fs::read_to_string(&markdown_file_path).map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to read README.md: {}", e),
+            format!("Failed to read README.md: {e}"),
         )
     })?;
 
