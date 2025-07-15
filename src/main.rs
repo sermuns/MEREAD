@@ -5,7 +5,11 @@ use axum_embed::ServeEmbed;
 use clap::Parser;
 use notify::Watcher;
 use rust_embed::RustEmbed;
-use std::{fs, path::PathBuf};
+use std::{
+    fs,
+    path::{Path, PathBuf},
+    sync::Arc,
+};
 use tokio::net::TcpListener;
 use tower_http::services::ServeDir;
 use tower_livereload::LiveReloadLayer;
@@ -13,19 +17,23 @@ use tower_livereload::LiveReloadLayer;
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
 struct Args {
-    /// Markdown file to render. Falls back to README.md if directory.
+    /// Path to markdown file or directory containing README.md
     #[arg(default_value = ".")]
     path: PathBuf,
 
-    /// (If supplied) export the rendered markdown as HTML to the specified directory.
+    /// If supplied, will export the markdown file to HTML in the specified directory
     #[arg(long, short)]
     export_dir: Option<PathBuf>,
 
-    /// Address to bind the server to.
+    /// Whether to overwrite the export directory if it exists
+    #[arg(long, short)]
+    force: bool,
+
+    /// Address to bind the server to
     #[arg(long, short, default_value = "localhost:3000")]
     address: String,
 
-    /// Open rendered markdown in default browser.
+    /// Whether to open the browser on serve
     #[arg(long, short)]
     open: bool,
 }
@@ -35,61 +43,19 @@ struct Args {
 struct Assets;
 
 #[tokio::main]
-async fn main() -> anyhow::Result<()> {
+async fn main() -> Result<()> {
     let args = Args::parse();
 
-    let markdown_file_path = if args.path.is_dir() {
-        args.path.join("README.md")
+    let root_path = Arc::new(args.path);
+
+    let markdown_file_path = if root_path.is_dir() {
+        root_path.join("README.md")
     } else {
-        args.path.clone()
+        root_path.to_path_buf()
     };
 
-    // TODO: bundle/hardcode styles and font into HTML
     if let Some(export_dir) = &args.export_dir {
-        let markdown_content =
-            fs::read_to_string(&markdown_file_path).context("Failed to read markdown file")?;
-        let rendered_html = render_markdown(
-            &markdown_content,
-            markdown_file_path.file_name().unwrap().to_str().unwrap(),
-        )
-        .await
-        .context("Failed to render markdown")?;
-
-        if export_dir.exists() {
-            return Err(anyhow::anyhow!(
-                "Export directory already exists: {}",
-                export_dir.display()
-            ));
-        }
-
-        fs::create_dir_all(export_dir).context(format!(
-            "Failed to create export directory: {}",
-            export_dir.display()
-        ))?;
-
-        fs::write(export_dir.join("index.html"), rendered_html)
-            .context(format!("Failed to write to {}", export_dir.display()))?;
-        println!("Exported rendered markdown to {}", export_dir.display());
-
-        // Dump embedded assets
-        let assets_export_dir = export_dir.join("assets");
-        fs::create_dir_all(&assets_export_dir).context(format!(
-            "Failed to create assets export directory: {}",
-            assets_export_dir.display()
-        ))?;
-
-        for file_name in Assets::iter() {
-            let asset_path = assets_export_dir.join(file_name.as_ref());
-            let asset_content = Assets::get(file_name.as_ref())
-                .context(format!("Failed to get embedded asset: {file_name}"))?
-                .data;
-
-            fs::write(&asset_path, asset_content).context(format!(
-                "Failed to write embedded asset to: {}",
-                asset_path.display()
-            ))?;
-        }
-
+        export_markdown(&markdown_file_path, export_dir, args.force).await?;
         return Ok(());
     }
 
@@ -97,25 +63,57 @@ async fn main() -> anyhow::Result<()> {
     let reloader = livereload_layer.reloader();
 
     let app = Router::new()
-        .route("/", get(move || serve_markdown(markdown_file_path.clone())))
+        .route(
+            "/",
+            get({
+                let md = markdown_file_path.clone();
+                move || serve_markdown(md.clone())
+            }),
+        )
         .nest_service("/assets", ServeEmbed::<Assets>::new())
-        .fallback_service(ServeDir::new(&args.path))
+        .fallback_service(ServeDir::new((*root_path).clone()))
         .layer(livereload_layer);
 
     let mut watcher = notify::recommended_watcher(move |_| reloader.reload())?;
-    watcher.watch(&args.path, notify::RecursiveMode::Recursive)?;
+    watcher.watch(root_path.as_ref(), notify::RecursiveMode::Recursive)?;
 
     if args.open {
-        if let Err(e) = open::that(format!("http://{}", &args.address)) {
-            eprintln!("Failed to open browser: {e}");
-        }
+        let _ = open::that(format!("http://{}", &args.address));
     }
 
-    println!("Serving {:?} on http://{}", &args.path, &args.address);
+    println!("Serving {} on http://{}", root_path.display(), args.address);
 
     let listener = TcpListener::bind(&args.address).await?;
     axum::serve(listener, app).await?;
+    Ok(())
+}
 
+async fn export_markdown(md_path: &Path, export_dir: &Path, force: bool) -> Result<()> {
+    let markdown_content = fs::read_to_string(md_path).context("Failed to read markdown file")?;
+    let rendered_html = render_markdown(
+        &markdown_content,
+        md_path.file_name().unwrap().to_str().unwrap(),
+    )
+    .await
+    .context("Failed to render markdown")?;
+
+    anyhow::ensure!(
+        force || !export_dir.exists(),
+        "Export directory already exists: {}, and --force was not supplied",
+        export_dir.display()
+    );
+
+    fs::create_dir_all(export_dir).context("Failed to create export directory")?;
+    fs::write(export_dir.join("index.html"), rendered_html).context("Failed to write HTML")?;
+
+    let assets_dir = export_dir.join("assets");
+    fs::create_dir_all(&assets_dir).context("Failed to create assets directory")?;
+
+    for name in Assets::iter() {
+        let content = Assets::get(name.as_ref()).unwrap().data;
+        fs::write(assets_dir.join(name.as_ref()), content)?;
+    }
+    println!("Exported to {}", export_dir.display());
     Ok(())
 }
 
@@ -126,7 +124,7 @@ struct HtmlTemplate<'a> {
     contents: &'a str,
 }
 
-async fn render_markdown(markdown_content: &str, title: &str) -> anyhow::Result<String> {
+async fn render_markdown(markdown_content: &str, title: &str) -> Result<String> {
     let contents = markdown::to_html_with_options(
         markdown_content,
         &markdown::Options {
@@ -137,32 +135,24 @@ async fn render_markdown(markdown_content: &str, title: &str) -> anyhow::Result<
             ..markdown::Options::gfm()
         },
     )
-    .map_err(|e| anyhow::anyhow!("Failed to convert markdown to HTML: {}", e))?;
+    .map_err(|e| anyhow::anyhow!("Failed to convert markdown: {e}"))?;
 
-    let rendered_html = HtmlTemplate {
+    Ok(HtmlTemplate {
         title,
         contents: &contents,
     }
-    .render()
-    .map_err(|e| anyhow::anyhow!("Failed to render template: {}", e))?;
-
-    Ok(rendered_html)
+    .render()?)
 }
 
-async fn serve_markdown(markdown_file_path: PathBuf) -> Result<Html<String>, (StatusCode, String)> {
-    let markdown_content = fs::read_to_string(&markdown_file_path).map_err(|e| {
+async fn serve_markdown(md_path: PathBuf) -> Result<Html<String>, (StatusCode, String)> {
+    let content = fs::read_to_string(&md_path).map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to read README.md: {e}"),
+            format!("Read error: {e}"),
         )
     })?;
-
-    Ok(Html(
-        render_markdown(
-            &markdown_content,
-            markdown_file_path.file_name().unwrap().to_str().unwrap(),
-        )
+    render_markdown(&content, md_path.file_name().unwrap().to_str().unwrap())
         .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?,
-    ))
+        .map(Html)
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))
 }
