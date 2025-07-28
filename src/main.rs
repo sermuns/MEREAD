@@ -14,13 +14,13 @@ use futures::{Stream, StreamExt};
 use once_cell::sync::Lazy;
 use rust_embed::RustEmbed;
 use std::convert::Infallible;
+use std::fs;
 use std::time::Duration;
 use std::{
     path::{Path, PathBuf},
     sync::Arc,
 };
 use time::OffsetDateTime;
-use tokio::fs;
 use tokio::net::TcpListener;
 use tokio::sync::{RwLock, broadcast};
 use tokio_stream::wrappers::BroadcastStream;
@@ -61,16 +61,12 @@ struct RenderedMarkdown {
 
 impl RenderedMarkdown {
     async fn new(path: &Path) -> Result<Self> {
-        let markdown_content = fs::read_to_string(path)
-            .await
-            .context("Failed to read markdown file")?;
+        let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
 
         let rendered_markdown = render_markdown(
             &markdown_content,
             path.file_name().unwrap().to_str().unwrap(),
-        )
-        .await
-        .context("Failed to render markdown")?;
+        )?;
 
         Ok(Self {
             content: rendered_markdown,
@@ -79,15 +75,13 @@ impl RenderedMarkdown {
     }
 
     async fn rebuild(&mut self) -> Result<()> {
-        let markdown_content = fs::read_to_string(&self.path)
-            .await
-            .context("Failed to read markdown file")?;
+        let markdown_content =
+            fs::read_to_string(&self.path).context("Failed to read markdown file")?;
 
         self.content = render_markdown(
             &markdown_content,
             self.path.file_name().unwrap().to_str().unwrap(),
-        )
-        .await?;
+        )?;
 
         Ok(())
     }
@@ -136,7 +130,7 @@ async fn main() -> Result<()> {
     };
 
     if let Some(export_dir) = &args.export_dir {
-        export_markdown(&markdown_file_path, export_dir, args.force).await?;
+        export_markdown(&markdown_file_path, export_dir, args.force)?;
         return Ok(());
     }
 
@@ -161,7 +155,7 @@ async fn main() -> Result<()> {
                         .format(SIMPLE_TIME_FORMAT)
                         .unwrap_or("?".to_string());
 
-                    println!("[{now}] Detected change in docs directory, rebuilding...");
+                    println!("[{now}] Detected change, rebuilding...");
 
                     let state = Arc::clone(&state);
 
@@ -242,16 +236,13 @@ async fn append_livereload_script(request: Request, next: Next) -> Response {
     Response::from_parts(parts, body::Body::from(modified_body_bytes))
 }
 
-async fn export_markdown(md_path: &Path, export_dir: &Path, force: bool) -> Result<()> {
-    let markdown_content = fs::read_to_string(md_path)
-        .await
-        .context("Failed to read markdown file")?;
+fn export_markdown(md_path: &Path, export_dir: &Path, force: bool) -> Result<()> {
+    let markdown_content = fs::read_to_string(md_path).context("Failed to read markdown file")?;
+
     let rendered_html = render_markdown(
         &markdown_content,
         md_path.file_name().unwrap().to_str().unwrap(),
-    )
-    .await
-    .context("Failed to render markdown")?;
+    )?;
 
     anyhow::ensure!(
         force || !export_dir.exists(),
@@ -259,21 +250,17 @@ async fn export_markdown(md_path: &Path, export_dir: &Path, force: bool) -> Resu
         export_dir.display()
     );
 
-    fs::create_dir_all(export_dir)
-        .await
-        .context("Failed to create export directory")?;
-    fs::write(export_dir.join("index.html"), rendered_html)
-        .await
-        .context("Failed to write HTML")?;
+    fs::create_dir_all(export_dir).context("Failed to create export directory")?;
+
+    fs::write(export_dir.join("index.html"), rendered_html).context("Failed to write HTML")?;
 
     let assets_dir = export_dir.join("assets");
-    fs::create_dir_all(&assets_dir)
-        .await
-        .context("Failed to create assets directory")?;
+
+    fs::create_dir_all(&assets_dir).context("Failed to create assets directory")?;
 
     for name in Assets::iter() {
         let content = Assets::get(name.as_ref()).unwrap().data;
-        fs::write(assets_dir.join(name.as_ref()), content).await?;
+        fs::write(assets_dir.join(name.as_ref()), content)?;
     }
     println!("Exported to {}", export_dir.display());
     Ok(())
@@ -286,60 +273,75 @@ struct HtmlTemplate<'a> {
     contents: &'a str,
 }
 
-use pulldown_cmark::Options;
-static MARKDOWN_OPTIONS: Lazy<Options> = Lazy::new(|| {
-    let mut options = Options::empty();
-    options.insert(Options::ENABLE_TABLES);
-    options.insert(Options::ENABLE_STRIKETHROUGH);
-    options.insert(Options::ENABLE_TASKLISTS);
-    options.insert(Options::ENABLE_YAML_STYLE_METADATA_BLOCKS);
-    options.insert(Options::ENABLE_GFM);
-    options
+struct ComrakConfig {
+    options: comrak::Options<'static>,
+    plugins: comrak::Plugins<'static>,
+}
+
+use comrak::plugins::syntect::{SyntectAdapter, SyntectAdapterBuilder};
+static SYNTECT_ADAPTER: Lazy<SyntectAdapter> = Lazy::new(|| {
+    use std::io::Cursor;
+    use syntect::highlighting::ThemeSet;
+    let mut theme_set = ThemeSet::new();
+
+    theme_set.themes.insert(
+        "light-default".to_string(),
+        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))
+            .unwrap(),
+    );
+    theme_set.themes.insert(
+        "dark".to_string(),
+        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme"))).unwrap(),
+    );
+
+    SyntectAdapterBuilder::new()
+        .theme_set(theme_set)
+        .theme("light-default") // TODO: make this controllable
+        .build()
 });
 
-async fn render_markdown(markdown_content: &str, title: &str) -> Result<String> {
-    use pulldown_cmark::{CowStr, Event, HeadingLevel, Parser as MarkdownParser, Tag, html};
+static COMRAK_CONFIG: Lazy<ComrakConfig> = Lazy::new(|| {
+    use comrak::{ExtensionOptions, Plugins, RenderOptions, RenderPlugins};
 
-    let mut previous_heading_level: Option<HeadingLevel> = None;
-    let parser =
-        MarkdownParser::new_ext(markdown_content, *MARKDOWN_OPTIONS).filter_map(
-            |event| match event {
-                Event::Start(Tag::Heading { level, .. }) => {
-                    previous_heading_level = Some(level);
-                    None
-                }
-                Event::Text(text) => {
-                    let Some(heading_level) = previous_heading_level.take() else {
-                        return Some(Event::Text(text));
-                    };
+    let options = comrak::Options {
+        render: RenderOptions {
+            unsafe_: true,
+            ..Default::default()
+        },
+        extension: ExtensionOptions {
+            header_ids: Some("".to_string()),
+            table: true,
+            strikethrough: true,
+            autolink: true,
+            tagfilter: true,
+            footnotes: true,
+            ..Default::default()
+        },
+        ..Default::default()
+    };
 
-                    let anchor: String = text
-                        .to_lowercase()
-                        .chars()
-                        .map(|c| if c.is_alphanumeric() { c } else { '-' })
-                        .collect();
+    let plugins = Plugins {
+        render: RenderPlugins {
+            codefence_syntax_highlighter: Some(&*SYNTECT_ADAPTER),
+            ..Default::default()
+        },
+    };
 
-                    let heading_start_and_text = Event::InlineHtml(CowStr::from(format!(
-                        "<h{} id=\"{}\">{}",
-                        heading_level as u8, anchor, text,
-                    )));
+    ComrakConfig { options, plugins }
+});
 
-                    previous_heading_level = None;
-                    Some(heading_start_and_text)
-                }
-                _ => Some(event),
-            },
-        );
+fn render_markdown(markdown_content: &str, title: &str) -> Result<String, askama::Error> {
+    let rendered_markdown = comrak::markdown_to_html_with_plugins(
+        markdown_content,
+        &COMRAK_CONFIG.options,
+        &COMRAK_CONFIG.plugins,
+    );
 
-    // reasonable guess for HTML size?
-    let mut rendered_markdown = String::with_capacity((markdown_content.len() * 3) / 2);
-    html::push_html(&mut rendered_markdown, parser);
-
-    Ok(HtmlTemplate {
+    HtmlTemplate {
         title,
         contents: &rendered_markdown,
     }
-    .render()?)
+    .render()
 }
 
 use axum::response::Html;

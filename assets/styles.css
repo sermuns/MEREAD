@@ -64,7 +64,6 @@ li + li {
 
 pre {
 	display: flex;
-	background-color: #f6f8fa;
 	line-height: 1.5;
 	padding: 0.5rem;
 	align-items: flex-start;
