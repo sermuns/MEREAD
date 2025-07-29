@@ -19,19 +19,11 @@ jobs:
 
       - uses: actions/checkout@v4
 
-      - uses: jdx/mise-action@v2
-        with: 
-          mise_toml: |
-            [tools]
-            "ubi:sermuns/meread" = "latest"
+      - run: rustup toolchain install stable --profile minimal
 
-      - run: meread README.md -e index.html
+      - uses: Swatinem/rust-cache@v2
 
-      - run: |
-          mkdir public
-          mv index.html media assets public/
-
-      - uses: actions/configure-pages@v4
+      - run: cargo run -- -e public
 
       - uses: actions/upload-pages-artifact@v3
         with:
