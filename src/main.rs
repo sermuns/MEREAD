@@ -60,12 +60,13 @@ struct RenderedMarkdown {
 }
 
 impl RenderedMarkdown {
-    fn new(path: &Path) -> Result<Self> {
+    fn new(path: &Path, light: bool) -> Result<Self> {
         let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
 
         let rendered_markdown = render_markdown(
             &markdown_content,
             path.file_name().unwrap().to_str().unwrap(),
+            light,
         )?;
 
         Ok(Self {
@@ -74,13 +75,14 @@ impl RenderedMarkdown {
         })
     }
 
-    fn rebuild(&mut self) -> Result<()> {
+    fn rebuild(&mut self, light: bool) -> Result<()> {
         let markdown_content =
             fs::read_to_string(&self.path).context("Failed to read markdown file")?;
 
         self.content = render_markdown(
             &markdown_content,
             self.path.file_name().unwrap().to_str().unwrap(),
+            light,
         )?;
 
         Ok(())
@@ -144,6 +146,7 @@ async fn main() -> Result<()> {
         let rendered_html = render_markdown(
             &markdown_content,
             markdown_file_path.file_name().unwrap().to_str().unwrap(), // FIXME: horrible unwrap chain..
+            args.light,
         )?;
 
         fs::create_dir_all(export_dir).context("Failed to create export directory")?;
@@ -161,7 +164,10 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let state = Arc::new(RwLock::new(RenderedMarkdown::new(&markdown_file_path)?));
+    let state = Arc::new(RwLock::new(RenderedMarkdown::new(
+        &markdown_file_path,
+        args.light,
+    )?));
 
     use notify::EventKind::{Create, Modify, Remove};
     use notify_debouncer_full::{DebounceEventResult, new_debouncer};
@@ -185,7 +191,7 @@ async fn main() -> Result<()> {
                     let state = Arc::clone(&state);
 
                     rt.spawn(async move {
-                        match state.write().await.rebuild() {
+                        match state.write().await.rebuild(args.light) {
                             Ok(_) => {
                                 let _ = RELOAD_TX.send("reload".to_string());
                             }
@@ -204,7 +210,7 @@ async fn main() -> Result<()> {
         .watch(root_path.as_path(), notify::RecursiveMode::Recursive)
         .with_context(|| format!("Failed to watch path: {}", root_path.display()))?;
 
-    state.write().await.rebuild()?;
+    state.write().await.rebuild(args.light)?;
 
     let app = Router::new()
         .route("/", get(serve))
@@ -268,6 +274,7 @@ async fn append_livereload_script(request: Request, next: Next) -> Response {
 struct HtmlTemplate<'a> {
     title: &'a str,
     contents: &'a str,
+    light: bool,
 }
 
 struct ComrakConfig {
@@ -333,7 +340,11 @@ fn init_comrak_config(light: bool) {
     let _ = COMRAK_CONFIG.set(ComrakConfig { options, plugins });
 }
 
-fn render_markdown(markdown_content: &str, title: &str) -> Result<String, askama::Error> {
+fn render_markdown(
+    markdown_content: &str,
+    title: &str,
+    light: bool,
+) -> Result<String, askama::Error> {
     let comrak_config = COMRAK_CONFIG.get().unwrap();
 
     let rendered_markdown = comrak::markdown_to_html_with_plugins(
@@ -345,6 +356,7 @@ fn render_markdown(markdown_content: &str, title: &str) -> Result<String, askama
     HtmlTemplate {
         title,
         contents: &rendered_markdown,
+        light,
     }
     .render()
 }

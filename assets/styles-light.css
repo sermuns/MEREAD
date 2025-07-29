@@ -1,0 +1,21 @@
+:root {
+	--borderColor-default: #d1d9e0;
+	--borderColor-muted: #d1d9e0b3;
+
+	--bgColor-neutral-muted: #818b981f;
+	--bgColor-default: #fff;
+	--bgColor-muted: #f6f8fa;
+
+	--fgColor-default: #1f2328;
+	--fgColor-muted: #59636e;
+}
+
+/* --borderColor-default: #3d444d; */
+/* --borderColor-muted: #3d444db3; */
+/**/
+/* --bgColor-default: #0d1117; */
+/* --bgColor-muted: #151b23; */
+/**/
+/* --fgColor-default: #f0f6fc; */
+/* --fgColor-muted: #9198a1; */
+/* --fgColor-accent: #4493f8; */

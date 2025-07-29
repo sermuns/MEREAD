@@ -26,12 +26,21 @@
 }
 
 :root {
+	--borderColor-default: #3d444d;
+	--borderColor-muted: #3d444db3;
+
+	--bgColor-default: #0d1117;
+	--bgColor-muted: #151b23;
+	--bgColor-neutral-muted: #656c7633;
+
+	--fgColor-default: #f0f6fc;
+	--fgColor-muted: #9198a1;
+	--fgColor-accent: #4493f8;
+
+	color: var(--fgColor-default);
+	background-color: var(--bgColor-default);
 	font-family: "Noto Sans", sans-serif;
-	font-size: 16px;
-	--borderColor-default: #d1d9e0;
-	--borderColor-muted: #d1d9e0b3;
-	--bgColor-default: #fff;
-	--bgColor-muted: #f6f8fa;
+	font-size: 17px;
 }
 
 * {
@@ -81,9 +90,9 @@ code {
 	border-radius: 6px;
 }
 
-p > code {
-	color: rgb(31, 35, 40);
-	background-color: #f0f1f2;
+p > code,
+p > a > code {
+	background-color: var(--bgColor-neutral-muted);
 }
 
 /* footnote */
@@ -99,6 +108,7 @@ sup > a {
 h1,
 h2 {
 	border-bottom: 1px solid var(--borderColor-default);
+	padding-bottom: .3em;
 }
 
 section.footnotes {
@@ -114,7 +124,7 @@ section.footnotes {
 }
 
 a {
-	color: #0969da;
+	color: var(--fgColor-accent);
 	text-underline-offset: 0.2rem;
 	cursor: pointer;
 }
@@ -139,4 +149,10 @@ table {
 			background-color: var(--bgColor-muted);
 		}
 	}
+}
+
+hr {
+	height: 0.25em;
+	background-color: var(--borderColor-default);
+	border: 0;
 }
