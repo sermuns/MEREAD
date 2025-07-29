@@ -11,7 +11,7 @@ use axum::{
 };
 use clap::Parser;
 use futures::{Stream, StreamExt};
-use once_cell::sync::Lazy;
+use once_cell::{sync::Lazy, sync::OnceCell};
 use rust_embed::Embed;
 use std::convert::Infallible;
 use std::fs;
@@ -48,6 +48,10 @@ struct Args {
     /// Whether to open the browser on serve
     #[arg(long, short)]
     open: bool,
+
+    /// Render page in light-mode style
+    #[arg(long, short)]
+    light: bool,
 }
 
 struct RenderedMarkdown {
@@ -124,6 +128,8 @@ async fn main() -> Result<()> {
     } else {
         root_path.to_path_buf()
     };
+
+    init_comrak_config(args.light);
 
     if let Some(export_dir) = &args.export_dir {
         anyhow::ensure!(
@@ -269,30 +275,35 @@ struct ComrakConfig {
     plugins: comrak::Plugins<'static>,
 }
 
-use comrak::plugins::syntect::{SyntectAdapter, SyntectAdapterBuilder};
-static SYNTECT_ADAPTER: Lazy<SyntectAdapter> = Lazy::new(|| {
+use comrak::plugins::syntect::SyntectAdapter;
+static COMRAK_CONFIG: OnceCell<ComrakConfig> = OnceCell::new();
+static SYNTECT_ADAPTER: OnceCell<SyntectAdapter> = OnceCell::new();
+
+fn init_comrak_config(light: bool) {
+    use comrak::plugins::syntect::SyntectAdapterBuilder;
+    use comrak::{ExtensionOptions, Plugins, RenderOptions, RenderPlugins};
+
     use std::io::Cursor;
     use syntect::highlighting::ThemeSet;
     let mut theme_set = ThemeSet::new();
 
+    // Funny code.. Maybe this is too cursed..
     theme_set.themes.insert(
-        "light-default".to_string(),
+        true.to_string(),
         ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))
             .unwrap(),
     );
     theme_set.themes.insert(
-        "dark".to_string(),
+        false.to_string(),
         ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme"))).unwrap(),
     );
-
-    SyntectAdapterBuilder::new()
-        .theme_set(theme_set)
-        .theme("light-default") // TODO: make this controllable
-        .build()
-});
-
-static COMRAK_CONFIG: Lazy<ComrakConfig> = Lazy::new(|| {
-    use comrak::{ExtensionOptions, Plugins, RenderOptions, RenderPlugins};
+    // FIXME: HANDLE THE FUCKING ERRORS
+    let _ = SYNTECT_ADAPTER.set(
+        SyntectAdapterBuilder::new()
+            .theme_set(theme_set)
+            .theme(&light.to_string())
+            .build(),
+    );
 
     let options = comrak::Options {
         render: RenderOptions {
@@ -313,19 +324,22 @@ static COMRAK_CONFIG: Lazy<ComrakConfig> = Lazy::new(|| {
 
     let plugins = Plugins {
         render: RenderPlugins {
-            codefence_syntax_highlighter: Some(&*SYNTECT_ADAPTER),
+            codefence_syntax_highlighter: Some(SYNTECT_ADAPTER.get().unwrap()),
             ..Default::default()
         },
     };
 
-    ComrakConfig { options, plugins }
-});
+    // FIXME: HANDLE THE FUCKING ERRORS
+    let _ = COMRAK_CONFIG.set(ComrakConfig { options, plugins });
+}
 
 fn render_markdown(markdown_content: &str, title: &str) -> Result<String, askama::Error> {
+    let comrak_config = COMRAK_CONFIG.get().unwrap();
+
     let rendered_markdown = comrak::markdown_to_html_with_plugins(
         markdown_content,
-        &COMRAK_CONFIG.options,
-        &COMRAK_CONFIG.plugins,
+        &comrak_config.options,
+        &comrak_config.plugins,
     );
 
     HtmlTemplate {
