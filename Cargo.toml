@@ -1,6 +1,6 @@
 [package]
 name = "meread"
-version = "0.2.0"
+version = "0.2.1"
 description = "preview github flavored markdown locally"
 repository = "https://github.com/sermuns/meread"
 license = "WTFPL"
@@ -30,6 +30,7 @@ futures = "0.3.31"
 tokio-stream = { version = "0.1.17", features = ["sync"] }
 comrak = { version = "0.40.0", features = ["syntect"] }
 syntect = "5.2.0"
+mime_guess = "2.0.5"
 
 [profile.release]
 lto = true

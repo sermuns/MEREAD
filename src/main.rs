@@ -2,7 +2,7 @@ use anyhow::{Context, Result};
 use askama::Template;
 use axum::{
     Router,
-    http::StatusCode,
+    http::{StatusCode, header},
     response::{
         Response,
         sse::{Event, KeepAlive, Sse},
@@ -12,7 +12,7 @@ use axum::{
 use clap::Parser;
 use futures::{Stream, StreamExt};
 use once_cell::sync::Lazy;
-use rust_embed::RustEmbed;
+use rust_embed::Embed;
 use std::convert::Infallible;
 use std::fs;
 use std::time::Duration;
@@ -50,17 +50,13 @@ struct Args {
     open: bool,
 }
 
-#[derive(RustEmbed, Clone)]
-#[folder = "assets/"]
-struct Assets;
-
 struct RenderedMarkdown {
     content: String,
     path: PathBuf,
 }
 
 impl RenderedMarkdown {
-    async fn new(path: &Path) -> Result<Self> {
+    fn new(path: &Path) -> Result<Self> {
         let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
 
         let rendered_markdown = render_markdown(
@@ -74,7 +70,7 @@ impl RenderedMarkdown {
         })
     }
 
-    async fn rebuild(&mut self) -> Result<()> {
+    fn rebuild(&mut self) -> Result<()> {
         let markdown_content =
             fs::read_to_string(&self.path).context("Failed to read markdown file")?;
 
@@ -130,13 +126,36 @@ async fn main() -> Result<()> {
     };
 
     if let Some(export_dir) = &args.export_dir {
-        export_markdown(&markdown_file_path, export_dir, args.force)?;
+        anyhow::ensure!(
+            args.force || !export_dir.exists(),
+            "Export directory already exists: {}, and --force was not supplied",
+            export_dir.display()
+        );
+
+        let markdown_content = fs::read_to_string(&markdown_file_path)
+            .context("Failed to read markdown file for export")?;
+
+        let rendered_html = render_markdown(
+            &markdown_content,
+            markdown_file_path.file_name().unwrap().to_str().unwrap(), // FIXME: horrible unwrap chain..
+        )?;
+
+        fs::create_dir_all(export_dir).context("Failed to create export directory")?;
+
+        fs::write(export_dir.join("index.html"), rendered_html).context("Failed to write HTML")?;
+
+        for path in EmbeddedAssets::iter() {
+            let path_ref = path.as_ref();
+            fs::write(
+                export_dir.join(path_ref),
+                EmbeddedAssets::get(path_ref).unwrap().data,
+            )?;
+        }
+        println!("Exported to {}", export_dir.display());
         return Ok(());
     }
 
-    let state = Arc::new(RwLock::new(
-        RenderedMarkdown::new(&markdown_file_path).await?,
-    ));
+    let state = Arc::new(RwLock::new(RenderedMarkdown::new(&markdown_file_path)?));
 
     use notify::EventKind::{Create, Modify, Remove};
     use notify_debouncer_full::{DebounceEventResult, new_debouncer};
@@ -160,7 +179,7 @@ async fn main() -> Result<()> {
                     let state = Arc::clone(&state);
 
                     rt.spawn(async move {
-                        match state.write().await.rebuild().await {
+                        match state.write().await.rebuild() {
                             Ok(_) => {
                                 let _ = RELOAD_TX.send("reload".to_string());
                             }
@@ -179,11 +198,13 @@ async fn main() -> Result<()> {
         .watch(root_path.as_path(), notify::RecursiveMode::Recursive)
         .with_context(|| format!("Failed to watch path: {}", root_path.display()))?;
 
-    state.write().await.rebuild().await?;
+    state.write().await.rebuild()?;
 
     let app = Router::new()
         .route("/", get(serve))
-        .fallback_service(ServeDir::new(markdown_file_path.with_file_name("")))
+        .fallback_service(
+            ServeDir::new(markdown_file_path.with_file_name("")).fallback(get(assets_handler)),
+        )
         .with_state(state)
         .layer(axum::middleware::from_fn(append_livereload_script))
         .route("/~~~meread-reload", get(reload_handler));
@@ -234,36 +255,6 @@ async fn append_livereload_script(request: Request, next: Next) -> Response {
     parts.headers.remove(hyper::header::CONTENT_LENGTH);
 
     Response::from_parts(parts, body::Body::from(modified_body_bytes))
-}
-
-fn export_markdown(md_path: &Path, export_dir: &Path, force: bool) -> Result<()> {
-    let markdown_content = fs::read_to_string(md_path).context("Failed to read markdown file")?;
-
-    let rendered_html = render_markdown(
-        &markdown_content,
-        md_path.file_name().unwrap().to_str().unwrap(),
-    )?;
-
-    anyhow::ensure!(
-        force || !export_dir.exists(),
-        "Export directory already exists: {}, and --force was not supplied",
-        export_dir.display()
-    );
-
-    fs::create_dir_all(export_dir).context("Failed to create export directory")?;
-
-    fs::write(export_dir.join("index.html"), rendered_html).context("Failed to write HTML")?;
-
-    let assets_dir = export_dir.join("assets");
-
-    fs::create_dir_all(&assets_dir).context("Failed to create assets directory")?;
-
-    for name in Assets::iter() {
-        let content = Assets::get(name.as_ref()).unwrap().data;
-        fs::write(assets_dir.join(name.as_ref()), content)?;
-    }
-    println!("Exported to {}", export_dir.display());
-    Ok(())
 }
 
 #[derive(Template)]
@@ -350,4 +341,33 @@ async fn serve(
 ) -> impl IntoResponse {
     let content = rendered_markdown.read().await.content.clone();
     Html(content)
+}
+
+use axum::http::Uri;
+async fn assets_handler(uri: Uri) -> impl IntoResponse {
+    let path = uri.path().trim_start_matches('/').to_string();
+    EmbeddedAsset(path)
+}
+
+#[derive(Embed, Debug)]
+#[folder = "assets/"]
+struct EmbeddedAssets;
+
+pub struct EmbeddedAsset<T>(pub T);
+
+impl<T> IntoResponse for EmbeddedAsset<T>
+where
+    T: Into<String>,
+{
+    fn into_response(self) -> Response {
+        let path = self.0.into();
+
+        match EmbeddedAssets::get(path.as_str()) {
+            Some(content) => {
+                let mime = mime_guess::from_path(path).first_or_octet_stream();
+                ([(header::CONTENT_TYPE, mime.as_ref())], content.data).into_response()
+            }
+            None => (StatusCode::NOT_FOUND, "404 Not Found").into_response(),
+        }
+    }
 }
