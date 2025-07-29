@@ -24,6 +24,8 @@ jobs:
 
       - run: cargo run -- -e public
 
+      - run: cp -r media public/
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: public
