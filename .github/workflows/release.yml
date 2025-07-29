@@ -113,7 +113,8 @@ jobs:
 
       - name: Setup | Release notes
         run: |
-          cat CHANGELOG.md | sed -n '/^## ${{ steps.extract_version.outputs.version }}$/,/^## /p' | sed '$d' > RELEASE.md
+          sed -n '/^## \[${{ steps.extract_version.outputs.version }}\].*$/,/^## /p' CHANGELOG.md | sed '$d' > RELEASE.md
+
       - name: Build | Publish
         uses: softprops/action-gh-release@v2
         with:
