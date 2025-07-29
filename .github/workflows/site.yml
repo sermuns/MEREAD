@@ -3,20 +3,19 @@ on:
   push:
     branches:
       - main
-    paths: 
+    paths:
+      - .github/workflows/site.yml
       - README.md
       - assets/**
       - media/**
-    
+
 jobs:
   deploy:
     runs-on: ubuntu-24.04
     permissions:
-
       id-token: write # to use actions/deploy-pages
       pages: write # to push to a github pages site
     steps:
-
       - uses: actions/checkout@v4
 
       - run: rustup toolchain install stable --profile minimal
