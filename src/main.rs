@@ -324,6 +324,7 @@ fn init_comrak_config(light: bool) {
             autolink: true,
             tagfilter: true,
             footnotes: true,
+            shortcodes: true,
             ..Default::default()
         },
         ..Default::default()

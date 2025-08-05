@@ -29,7 +29,7 @@ time = { version = "0.3.41", features = [
 hyper = "1.6.0"
 futures = "0.3.31"
 tokio-stream = { version = "0.1.17", features = ["sync"] }
-comrak = { version = "0.40.0", features = ["syntect"] }
+comrak = { version = "0.40.0", features = ["shortcodes", "syntect"] }
 syntect = "5.2.0"
 mime_guess = "2.0.5"
 
