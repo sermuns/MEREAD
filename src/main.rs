@@ -1,5 +1,11 @@
-use anyhow::{Context, Result};
+#![deny(clippy::unwrap_used)]
+
+use anyhow::{Context, Result, anyhow};
 use askama::Template;
+use axum::body;
+use axum::http::Uri;
+use axum::middleware::Next;
+use axum::response::Html;
 use axum::{
     Router,
     http::{StatusCode, header},
@@ -9,7 +15,12 @@ use axum::{
     },
     routing::get,
 };
+use axum::{
+    extract::{Request, State},
+    response::IntoResponse,
+};
 use clap::Parser;
+use comrak::plugins::syntect::SyntectAdapter;
 use futures::{Stream, StreamExt};
 use once_cell::{sync::Lazy, sync::OnceCell};
 use rust_embed::Embed;
@@ -21,6 +32,8 @@ use std::{
     sync::Arc,
 };
 use time::OffsetDateTime;
+use time::format_description::BorrowedFormatItem;
+use time::macros::format_description;
 use tokio::net::TcpListener;
 use tokio::sync::{RwLock, broadcast};
 use tokio_stream::wrappers::BroadcastStream;
@@ -61,13 +74,7 @@ struct RenderedMarkdown {
 
 impl RenderedMarkdown {
     fn new(path: &Path, light: bool) -> Result<Self> {
-        let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
-
-        let rendered_markdown = render_markdown(
-            &markdown_content,
-            path.file_name().unwrap().to_str().unwrap(),
-            light,
-        )?;
+        let rendered_markdown = render_markdown(path, light)?;
 
         Ok(Self {
             content: rendered_markdown,
@@ -76,25 +83,10 @@ impl RenderedMarkdown {
     }
 
     fn rebuild(&mut self, light: bool) -> Result<()> {
-        let markdown_content =
-            fs::read_to_string(&self.path).context("Failed to read markdown file")?;
-
-        self.content = render_markdown(
-            &markdown_content,
-            self.path.file_name().unwrap().to_str().unwrap(),
-            light,
-        )?;
-
+        self.content = render_markdown(&self.path, light)?;
         Ok(())
     }
 }
-
-use axum::{
-    extract::{Request, State},
-    response::IntoResponse,
-};
-use time::format_description::BorrowedFormatItem;
-use time::macros::format_description;
 
 const SIMPLE_TIME_FORMAT: &[BorrowedFormatItem<'_>] =
     format_description!("[hour]:[minute]:[second]");
@@ -131,7 +123,7 @@ async fn main() -> Result<()> {
         root_path.to_path_buf()
     };
 
-    init_comrak_config(args.light);
+    init_comrak_config(args.light)?;
 
     if let Some(export_dir) = &args.export_dir {
         anyhow::ensure!(
@@ -140,14 +132,7 @@ async fn main() -> Result<()> {
             export_dir.display()
         );
 
-        let markdown_content = fs::read_to_string(&markdown_file_path)
-            .context("Failed to read markdown file for export")?;
-
-        let rendered_html = render_markdown(
-            &markdown_content,
-            markdown_file_path.file_name().unwrap().to_str().unwrap(), // FIXME: horrible unwrap chain..
-            args.light,
-        )?;
+        let rendered_html = render_markdown(&markdown_file_path, args.light)?;
 
         fs::create_dir_all(export_dir).context("Failed to create export directory")?;
 
@@ -157,7 +142,9 @@ async fn main() -> Result<()> {
             let path_ref = path.as_ref();
             fs::write(
                 export_dir.join(path_ref),
-                EmbeddedAssets::get(path_ref).unwrap().data,
+                EmbeddedAssets::get(path_ref)
+                    .context("Embedded file not found")?
+                    .data,
             )?;
         }
         println!("Exported to {}", export_dir.display());
@@ -238,8 +225,6 @@ static LIVERELOAD_SCRIPT_BYTES: &[u8] = br#"<script>
     };
 </script>"#;
 
-use axum::body;
-use axum::middleware::Next;
 async fn append_livereload_script(request: Request, next: Next) -> Response {
     let response = next.run(request).await;
 
@@ -256,17 +241,16 @@ async fn append_livereload_script(request: Request, next: Next) -> Response {
             return Response::from_parts(parts, body);
         }
     }
-
-    let body_bytes = body::to_bytes(body, usize::MAX).await.unwrap();
-
-    let mut modified_body_bytes =
-        Vec::with_capacity(body_bytes.len() + LIVERELOAD_SCRIPT_BYTES.len());
-    modified_body_bytes.extend_from_slice(&body_bytes);
-    modified_body_bytes.extend_from_slice(LIVERELOAD_SCRIPT_BYTES);
-
     parts.headers.remove(hyper::header::CONTENT_LENGTH);
 
-    Response::from_parts(parts, body::Body::from(modified_body_bytes))
+    let mut body_bytes = body::to_bytes(body, usize::MAX)
+        .await
+        .expect("unable to parse body as bytes. exceeded max size?")
+        .to_vec();
+
+    body_bytes.extend_from_slice(LIVERELOAD_SCRIPT_BYTES);
+
+    Response::from_parts(parts, body_bytes.into())
 }
 
 #[derive(Template)]
@@ -282,11 +266,10 @@ struct ComrakConfig {
     plugins: comrak::Plugins<'static>,
 }
 
-use comrak::plugins::syntect::SyntectAdapter;
 static COMRAK_CONFIG: OnceCell<ComrakConfig> = OnceCell::new();
 static SYNTECT_ADAPTER: OnceCell<SyntectAdapter> = OnceCell::new();
 
-fn init_comrak_config(light: bool) {
+fn init_comrak_config(light: bool) -> Result<()> {
     use comrak::plugins::syntect::SyntectAdapterBuilder;
     use comrak::{ExtensionOptions, Plugins, RenderOptions, RenderPlugins};
 
@@ -297,20 +280,18 @@ fn init_comrak_config(light: bool) {
     // Funny code.. Maybe this is too cursed..
     theme_set.themes.insert(
         true.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))
-            .unwrap(),
+        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))?,
     );
     theme_set.themes.insert(
         false.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme"))).unwrap(),
+        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme")))?,
     );
     // FIXME: HANDLE THE FUCKING ERRORS
-    let _ = SYNTECT_ADAPTER.set(
-        SyntectAdapterBuilder::new()
-            .theme_set(theme_set)
-            .theme(&light.to_string())
-            .build(),
-    );
+    let syntect_adapter = SyntectAdapterBuilder::new()
+        .theme_set(theme_set)
+        .theme(&light.to_string())
+        .build();
+    let _ = SYNTECT_ADAPTER.set(syntect_adapter);
 
     let options = comrak::Options {
         render: RenderOptions {
@@ -332,24 +313,30 @@ fn init_comrak_config(light: bool) {
 
     let plugins = Plugins {
         render: RenderPlugins {
-            codefence_syntax_highlighter: Some(SYNTECT_ADAPTER.get().unwrap()),
+            codefence_syntax_highlighter: unsafe { Some(SYNTECT_ADAPTER.get_unchecked()) },
             ..Default::default()
         },
     };
 
     // FIXME: HANDLE THE FUCKING ERRORS
     let _ = COMRAK_CONFIG.set(ComrakConfig { options, plugins });
+    Ok(())
 }
 
-fn render_markdown(
-    markdown_content: &str,
-    title: &str,
-    light: bool,
-) -> Result<String, askama::Error> {
-    let comrak_config = COMRAK_CONFIG.get().unwrap();
+fn render_markdown(path: &Path, light: bool) -> anyhow::Result<String> {
+    let comrak_config = COMRAK_CONFIG
+        .get()
+        .ok_or("COMRAK_CONFIG was not initialized".to_string())?;
+
+    let title = &path
+        .file_name()
+        .context("Input file is not file")?
+        .to_string_lossy();
+
+    let markdown_content_str = fs::read_to_string(path).context("Failed to read markdown file")?;
 
     let rendered_markdown = comrak::markdown_to_html_with_plugins(
-        markdown_content,
+        &markdown_content_str,
         &comrak_config.options,
         &comrak_config.plugins,
     );
@@ -360,9 +347,9 @@ fn render_markdown(
         light,
     }
     .render()
+    .map_err(|e| anyhow!(e))
 }
 
-use axum::response::Html;
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
@@ -370,7 +357,6 @@ async fn serve(
     Html(content)
 }
 
-use axum::http::Uri;
 async fn assets_handler(uri: Uri) -> impl IntoResponse {
     let path = uri.path().trim_start_matches('/').to_string();
     EmbeddedAsset(path)
