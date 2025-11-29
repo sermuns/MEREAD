@@ -1,8 +1,7 @@
 use anyhow::{Context, Result};
-use askama::Template;
 use axum::{
     Router,
-    http::{StatusCode, header},
+    http::StatusCode,
     response::{
         Response,
         sse::{Event, KeepAlive, Sse},
@@ -11,20 +10,24 @@ use axum::{
 };
 use clap::Parser;
 use futures::{Stream, StreamExt};
-use once_cell::{sync::Lazy, sync::OnceCell};
-use rust_embed::Embed;
+use once_cell::sync::Lazy;
 use std::convert::Infallible;
 use std::fs;
 use std::time::Duration;
-use std::{
-    path::{Path, PathBuf},
-    sync::Arc,
-};
+use std::{path::PathBuf, sync::Arc};
 use time::OffsetDateTime;
 use tokio::net::TcpListener;
 use tokio::sync::{RwLock, broadcast};
 use tokio_stream::wrappers::BroadcastStream;
 use tower_http::services::ServeDir;
+
+mod assets;
+mod comrak_config;
+mod render;
+
+use assets::*;
+use comrak_config::*;
+use render::*;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -52,41 +55,6 @@ struct Args {
     /// Render page in light-mode style
     #[arg(long, short)]
     light: bool,
-}
-
-struct RenderedMarkdown {
-    content: String,
-    path: PathBuf,
-}
-
-impl RenderedMarkdown {
-    fn new(path: &Path, light: bool) -> Result<Self> {
-        let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
-
-        let rendered_markdown = render_markdown(
-            &markdown_content,
-            path.file_name().unwrap().to_str().unwrap(),
-            light,
-        )?;
-
-        Ok(Self {
-            content: rendered_markdown,
-            path: path.to_path_buf(),
-        })
-    }
-
-    fn rebuild(&mut self, light: bool) -> Result<()> {
-        let markdown_content =
-            fs::read_to_string(&self.path).context("Failed to read markdown file")?;
-
-        self.content = render_markdown(
-            &markdown_content,
-            self.path.file_name().unwrap().to_str().unwrap(),
-            light,
-        )?;
-
-        Ok(())
-    }
 }
 
 use axum::{
@@ -269,132 +237,10 @@ async fn append_livereload_script(request: Request, next: Next) -> Response {
     Response::from_parts(parts, body::Body::from(modified_body_bytes))
 }
 
-#[derive(Template)]
-#[template(path = "template.html")]
-struct HtmlTemplate<'a> {
-    title: &'a str,
-    contents: &'a str,
-    light: bool,
-}
-
-struct ComrakConfig {
-    options: comrak::Options<'static>,
-    plugins: comrak::Plugins<'static>,
-}
-
-use comrak::plugins::syntect::SyntectAdapter;
-static COMRAK_CONFIG: OnceCell<ComrakConfig> = OnceCell::new();
-static SYNTECT_ADAPTER: OnceCell<SyntectAdapter> = OnceCell::new();
-
-fn init_comrak_config(light: bool) {
-    use comrak::plugins::syntect::SyntectAdapterBuilder;
-    use comrak::{ExtensionOptions, Plugins, RenderOptions, RenderPlugins};
-
-    use std::io::Cursor;
-    use syntect::highlighting::ThemeSet;
-    let mut theme_set = ThemeSet::new();
-
-    // Funny code.. Maybe this is too cursed..
-    theme_set.themes.insert(
-        true.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))
-            .unwrap(),
-    );
-    theme_set.themes.insert(
-        false.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme"))).unwrap(),
-    );
-    // FIXME: HANDLE THE FUCKING ERRORS
-    let _ = SYNTECT_ADAPTER.set(
-        SyntectAdapterBuilder::new()
-            .theme_set(theme_set)
-            .theme(&light.to_string())
-            .build(),
-    );
-
-    let options = comrak::Options {
-        render: RenderOptions {
-            unsafe_: true,
-            ..Default::default()
-        },
-        extension: ExtensionOptions {
-            header_ids: Some("".to_string()),
-            table: true,
-            strikethrough: true,
-            autolink: true,
-            tagfilter: true,
-            footnotes: true,
-            shortcodes: true,
-            ..Default::default()
-        },
-        ..Default::default()
-    };
-
-    let plugins = Plugins {
-        render: RenderPlugins {
-            codefence_syntax_highlighter: Some(SYNTECT_ADAPTER.get().unwrap()),
-            ..Default::default()
-        },
-    };
-
-    // FIXME: HANDLE THE FUCKING ERRORS
-    let _ = COMRAK_CONFIG.set(ComrakConfig { options, plugins });
-}
-
-fn render_markdown(
-    markdown_content: &str,
-    title: &str,
-    light: bool,
-) -> Result<String, askama::Error> {
-    let comrak_config = COMRAK_CONFIG.get().unwrap();
-
-    let rendered_markdown = comrak::markdown_to_html_with_plugins(
-        markdown_content,
-        &comrak_config.options,
-        &comrak_config.plugins,
-    );
-
-    HtmlTemplate {
-        title,
-        contents: &rendered_markdown,
-        light,
-    }
-    .render()
-}
-
 use axum::response::Html;
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
     let content = rendered_markdown.read().await.content.clone();
     Html(content)
-}
-
-use axum::http::Uri;
-async fn assets_handler(uri: Uri) -> impl IntoResponse {
-    let path = uri.path().trim_start_matches('/').to_string();
-    EmbeddedAsset(path)
-}
-
-#[derive(Embed, Debug)]
-#[folder = "assets/"]
-struct EmbeddedAssets;
-
-pub struct EmbeddedAsset<T>(pub T);
-
-impl<T> IntoResponse for EmbeddedAsset<T>
-where
-    T: Into<String>,
-{
-    fn into_response(self) -> Response {
-        let path = self.0.into();
-
-        match EmbeddedAssets::get(path.as_str()) {
-            Some(content) => {
-                let mime = mime_guess::from_path(path).first_or_octet_stream();
-                ([(header::CONTENT_TYPE, mime.as_ref())], content.data).into_response()
-            }
-            None => (StatusCode::NOT_FOUND, "404 Not Found").into_response(),
-        }
-    }
 }
