@@ -18,10 +18,10 @@ mod comrak_config;
 mod reload;
 mod render;
 
-use assets::*;
-use comrak_config::*;
-use reload::*;
-use render::*;
+use assets::{EmbeddedAssets, assets_handler};
+use comrak_config::init_comrak_config;
+use reload::{RELOAD_TX, append_livereload_script, reload_handler};
+use render::{RenderedMarkdown, render_markdown};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
