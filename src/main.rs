@@ -1,9 +1,5 @@
 use anyhow::{Context, Result};
-use axum::{
-    Router,
-    response::{Html, IntoResponse},
-    routing::get,
-};
+use axum::{Router, response::IntoResponse, routing::get};
 use clap::Parser;
 use std::fs;
 use std::time::Duration;
@@ -51,7 +47,6 @@ struct Args {
     light: bool,
 }
 
-use axum::extract::State;
 use time::format_description::BorrowedFormatItem;
 use time::macros::format_description;
 
@@ -171,9 +166,11 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
+use axum::extract::State;
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
+    use axum::response::Html;
     let content = rendered_markdown.read().await.content.clone();
     Html(content)
 }

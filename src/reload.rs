@@ -1,7 +1,5 @@
-use axum::body;
 use axum::{
     extract::Request,
-    http::StatusCode,
     middleware::Next,
     response::{
         Response,
@@ -10,9 +8,8 @@ use axum::{
 };
 use futures::{Stream, StreamExt};
 use once_cell::sync::Lazy;
-use std::{convert::Infallible, time::Duration};
+use std::convert::Infallible;
 use tokio::sync::broadcast;
-use tokio_stream::wrappers::BroadcastStream;
 
 pub static RELOAD_TX: Lazy<broadcast::Sender<String>> = Lazy::new(|| {
     let (tx, _) = broadcast::channel(100);
@@ -26,6 +23,9 @@ static LIVERELOAD_SCRIPT_BYTES: &[u8] = br#"<script>
 </script>"#;
 
 pub async fn reload_handler() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
+    use std::time::Duration;
+    use tokio_stream::wrappers::BroadcastStream;
+
     let stream = BroadcastStream::new(RELOAD_TX.subscribe()).map(|_| {
         Result::<Event, Infallible>::Ok(
             Event::default()
@@ -41,6 +41,9 @@ pub async fn reload_handler() -> Sse<impl Stream<Item = Result<Event, Infallible
 }
 
 pub async fn append_livereload_script(request: Request, next: Next) -> Response {
+    use axum::body;
+    use axum::http::StatusCode;
+
     let response = next.run(request).await;
 
     if response.status() != StatusCode::OK {

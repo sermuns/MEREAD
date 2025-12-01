@@ -3,8 +3,6 @@ use askama::Template;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-use crate::comrak_config::COMRAK_CONFIG;
-
 pub struct RenderedMarkdown {
     pub content: String,
     pub path: PathBuf,
@@ -53,6 +51,8 @@ pub fn render_markdown(
     title: &str,
     light: bool,
 ) -> Result<String, askama::Error> {
+    use crate::comrak_config::COMRAK_CONFIG;
+
     let comrak_config = COMRAK_CONFIG.get().unwrap();
 
     let rendered_markdown = comrak::markdown_to_html_with_plugins(
