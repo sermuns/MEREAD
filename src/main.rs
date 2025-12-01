@@ -1,33 +1,27 @@
 use anyhow::{Context, Result};
 use axum::{
     Router,
-    http::StatusCode,
-    response::{
-        Response,
-        sse::{Event, KeepAlive, Sse},
-    },
     routing::get,
+    response::{IntoResponse, Html},
 };
 use clap::Parser;
-use futures::{Stream, StreamExt};
-use once_cell::sync::Lazy;
-use std::convert::Infallible;
 use std::fs;
 use std::time::Duration;
 use std::{path::PathBuf, sync::Arc};
 use time::OffsetDateTime;
 use tokio::net::TcpListener;
-use tokio::sync::{RwLock, broadcast};
-use tokio_stream::wrappers::BroadcastStream;
+use tokio::sync::RwLock;
 use tower_http::services::ServeDir;
 
 mod assets;
 mod comrak_config;
 mod render;
+mod reload;
 
 use assets::*;
 use comrak_config::*;
 use render::*;
+use reload::*;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -57,35 +51,12 @@ struct Args {
     light: bool,
 }
 
-use axum::{
-    extract::{Request, State},
-    response::IntoResponse,
-};
+use axum::extract::State;
 use time::format_description::BorrowedFormatItem;
 use time::macros::format_description;
 
 const SIMPLE_TIME_FORMAT: &[BorrowedFormatItem<'_>] =
     format_description!("[hour]:[minute]:[second]");
-
-static RELOAD_TX: Lazy<broadcast::Sender<String>> = Lazy::new(|| {
-    let (tx, _) = broadcast::channel(100);
-    tx
-});
-
-async fn reload_handler() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
-    let stream = BroadcastStream::new(RELOAD_TX.subscribe()).map(|_| {
-        Result::<Event, Infallible>::Ok(
-            Event::default()
-                .retry(Duration::from_millis(250))
-                .data("reload"),
-        )
-    });
-    Sse::new(stream).keep_alive(
-        KeepAlive::new()
-            .interval(Duration::from_secs(1))
-            .text("keep-alive-ping"),
-    )
-}
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -200,44 +171,6 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-static LIVERELOAD_SCRIPT_BYTES: &[u8] = br#"<script>
-    new EventSource('/~~~meread-reload').onmessage = (e) => {
-        if (e.data === 'reload') window.location.reload()
-    };
-</script>"#;
-
-use axum::body;
-use axum::middleware::Next;
-async fn append_livereload_script(request: Request, next: Next) -> Response {
-    let response = next.run(request).await;
-
-    if response.status() != StatusCode::OK {
-        return response;
-    }
-
-    let (mut parts, body) = response.into_parts();
-
-    match parts.headers.get(hyper::header::CONTENT_TYPE) {
-        Some(content_type) if content_type.to_str().unwrap_or("").contains("text/html") => {}
-        _ => {
-            // dont mess with non-html
-            return Response::from_parts(parts, body);
-        }
-    }
-
-    let body_bytes = body::to_bytes(body, usize::MAX).await.unwrap();
-
-    let mut modified_body_bytes =
-        Vec::with_capacity(body_bytes.len() + LIVERELOAD_SCRIPT_BYTES.len());
-    modified_body_bytes.extend_from_slice(&body_bytes);
-    modified_body_bytes.extend_from_slice(LIVERELOAD_SCRIPT_BYTES);
-
-    parts.headers.remove(hyper::header::CONTENT_LENGTH);
-
-    Response::from_parts(parts, body::Body::from(modified_body_bytes))
-}
-
-use axum::response::Html;
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
