@@ -19,7 +19,7 @@ pub static RELOAD_TX: Lazy<broadcast::Sender<String>> = Lazy::new(|| {
     tx
 });
 
-pub static LIVERELOAD_SCRIPT_BYTES: &[u8] = br#"<script>
+static LIVERELOAD_SCRIPT_BYTES: &[u8] = br#"<script>
     new EventSource('/~~~meread-reload').onmessage = (e) => {
         if (e.data === 'reload') window.location.reload()
     };

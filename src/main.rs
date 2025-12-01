@@ -1,8 +1,8 @@
 use anyhow::{Context, Result};
 use axum::{
     Router,
+    response::{Html, IntoResponse},
     routing::get,
-    response::{IntoResponse, Html},
 };
 use clap::Parser;
 use std::fs;
@@ -15,13 +15,13 @@ use tower_http::services::ServeDir;
 
 mod assets;
 mod comrak_config;
-mod render;
 mod reload;
+mod render;
 
 use assets::*;
 use comrak_config::*;
-use render::*;
 use reload::*;
+use render::*;
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]

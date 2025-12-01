@@ -42,7 +42,7 @@ impl RenderedMarkdown {
 
 #[derive(Template)]
 #[template(path = "template.html")]
-pub struct HtmlTemplate<'a> {
+struct HtmlTemplate<'a> {
     title: &'a str,
     contents: &'a str,
     light: bool,

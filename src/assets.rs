@@ -8,7 +8,7 @@ use rust_embed::Embed;
 #[folder = "assets/"]
 pub struct EmbeddedAssets;
 
-pub struct EmbeddedAsset<T>(pub T);
+struct EmbeddedAsset<T>(T);
 
 impl<T: Into<String>> IntoResponse for EmbeddedAsset<T> {
     fn into_response(self) -> Response {
