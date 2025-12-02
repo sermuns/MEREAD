@@ -1,6 +1,11 @@
 # Changelog
 
-## [0.3.1](https://github.com/sermuns/MEREAD/compare/v0.3.0..0.3.1) - 2025-12-02
+## [0.3.2](https://github.com/sermuns/MEREAD/compare/v0.3.1..0.3.2) - 2025-12-02
+
+### 💼 Other
+
+- add docker and publish action by @sermuns in [9d2bd84](https://github.com/sermuns/MEREAD/commit/9d2bd84076e45cf3fb5ddaf114670ec03ecd6cec)
+## [v0.3.1](https://github.com/sermuns/MEREAD/compare/v0.3.0..v0.3.1) - 2025-12-02
 
 ### 💼 Other
 
@@ -23,6 +28,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - remove commented code by @sermuns in [1930e97](https://github.com/sermuns/MEREAD/commit/1930e97bb0e00a2552cbffde77949e745ad1c9b0)
+- Release meread version 0.3.1 by @sermuns in [1c464db](https://github.com/sermuns/MEREAD/commit/1c464db80ee28765e6d59279557ded3aa2da1d9c)
 ## [v0.3.0](https://github.com/sermuns/MEREAD/compare/v0.2.1..v0.3.0) - 2025-07-29
 
 ### 🚀 Features
