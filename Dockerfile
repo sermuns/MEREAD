@@ -1,22 +1,23 @@
-# based on https://github.com/jdx/mise/blob/main/packaging/mise/Dockerfile
+# based on https://github.com/orhun/rustypaste/blob/8329095c7585142a4f9e36e1ab74bbcbbeae73d9/Dockerfile
 
-ARG APP_NAME=meread
 
-FROM rust AS builder
-ARG APP_NAME
+FROM rust:1.91.0-alpine3.22 AS builder
 
-LABEL maintainer="sermuns"
-LABEL org.opencontainers.image.source=https://github.com/sermuns/${APP_NAME}}
-LABEL org.opencontainers.image.description="preview github README's locally"
-LABEL org.opencontainers.image.licenses=WTFPL
-
-WORKDIR /work
-COPY . /work/
-
+WORKDIR /app
+RUN apk update
+RUN apk add --no-cache musl-dev
+COPY Cargo.toml Cargo.toml
+RUN mkdir -p src/
+RUN echo "fn main() {println!(\"failed to build\")}" > src/main.rs
 RUN cargo build --release
+RUN rm -f target/release/deps/meread*
+COPY . .
+RUN cargo build --locked --release
+
 
 FROM scratch
-ARG APP_NAME
 
-COPY --from=builder /work/target/release/${APP_NAME} /bin/${APP_NAME}
-ENTRYPOINT ${APP_NAME}
+COPY --from=builder /app/target/release/meread /bin/
+WORKDIR /app
+USER 1000:1000
+ENTRYPOINT ["meread"]
