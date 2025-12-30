@@ -50,24 +50,26 @@ pub async fn append_livereload_script(request: Request, next: Next) -> Response 
         return response;
     }
 
-    let (mut parts, body) = response.into_parts();
+    let is_html = response
+        .headers()
+        .get(hyper::header::CONTENT_TYPE)
+        .is_some();
 
-    match parts.headers.get(hyper::header::CONTENT_TYPE) {
-        Some(content_type) if content_type.to_str().unwrap_or("").contains("text/html") => {}
-        _ => {
-            // dont mess with non-html
-            return Response::from_parts(parts, body);
-        }
+    if !is_html {
+        return response;
     }
 
-    let body_bytes = body::to_bytes(body, usize::MAX).await.unwrap();
+    let (mut parts, body) = response.into_parts();
 
-    let mut modified_body_bytes =
-        Vec::with_capacity(body_bytes.len() + LIVERELOAD_SCRIPT_BYTES.len());
-    modified_body_bytes.extend_from_slice(&body_bytes);
-    modified_body_bytes.extend_from_slice(LIVERELOAD_SCRIPT_BYTES);
+    let Ok(body_bytes) = body::to_bytes(body, usize::MAX).await else {
+        return Response::from_parts(parts, body::Body::empty());
+    };
+
+    let mut modified = Vec::with_capacity(body_bytes.len() + LIVERELOAD_SCRIPT_BYTES.len());
+    modified.extend_from_slice(&body_bytes);
+    modified.extend_from_slice(LIVERELOAD_SCRIPT_BYTES);
 
     parts.headers.remove(hyper::header::CONTENT_LENGTH);
 
-    Response::from_parts(parts, body::Body::from(modified_body_bytes))
+    Response::from_parts(parts, body::Body::from(modified))
 }

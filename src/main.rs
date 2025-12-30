@@ -1,6 +1,12 @@
-use anyhow::{Context, Result};
+#![deny(clippy::unwrap_used)]
+
+use axum::extract::State;
 use axum::{Router, response::IntoResponse, routing::get};
 use clap::Parser;
+use color_eyre::Result;
+use color_eyre::eyre::Context;
+use color_eyre::eyre::OptionExt;
+use color_eyre::eyre::ensure;
 use std::fs;
 use std::time::Duration;
 use std::{path::PathBuf, sync::Arc};
@@ -44,7 +50,7 @@ struct Args {
 
     /// Render page in light-mode style
     #[arg(long, short)]
-    light: bool,
+    light_mode: bool,
 }
 
 use time::format_description::BorrowedFormatItem;
@@ -65,33 +71,32 @@ async fn main() -> Result<()> {
         root_path.to_path_buf()
     };
 
-    init_comrak_config(args.light);
+    init_comrak_config(args.light_mode)?;
 
     if let Some(export_dir) = &args.export_dir {
-        anyhow::ensure!(
+        ensure!(
             args.force || !export_dir.exists(),
-            "Export directory already exists: {}, and --force was not supplied",
+            "export directory already exists: {}, and --force was not supplied",
             export_dir.display()
         );
 
         let markdown_content = fs::read_to_string(&markdown_file_path)
-            .context("Failed to read markdown file for export")?;
+            .context("failed to read markdown file for export")?;
 
-        let rendered_html = render_markdown(
-            &markdown_content,
-            markdown_file_path.file_name().unwrap().to_str().unwrap(), // FIXME: horrible unwrap chain..
-            args.light,
-        )?;
+        let rendered_html =
+            render_markdown(&markdown_content, &markdown_file_path, args.light_mode)?;
 
-        fs::create_dir_all(export_dir).context("Failed to create export directory")?;
+        fs::create_dir_all(export_dir).context("failed to create export directory")?;
 
-        fs::write(export_dir.join("index.html"), rendered_html).context("Failed to write HTML")?;
+        fs::write(export_dir.join("index.html"), rendered_html).context("failed to write HTML")?;
 
         for path in EmbeddedAssets::iter() {
             let path_ref = path.as_ref();
             fs::write(
                 export_dir.join(path_ref),
-                EmbeddedAssets::get(path_ref).unwrap().data,
+                EmbeddedAssets::get(path_ref)
+                    .ok_or_eyre("failed getting asset")?
+                    .data,
             )?;
         }
         println!("Exported to {}", export_dir.display());
@@ -100,51 +105,49 @@ async fn main() -> Result<()> {
 
     let state = Arc::new(RwLock::new(RenderedMarkdown::new(
         &markdown_file_path,
-        args.light,
+        args.light_mode,
     )?));
 
     use notify::EventKind::{Create, Modify, Remove};
     use notify_debouncer_full::{DebounceEventResult, new_debouncer};
     let mut debouncer = new_debouncer(Duration::from_millis(250), None, {
-        let state = Arc::clone(&state);
         let rt = tokio::runtime::Handle::current();
+        let state = state.clone();
         move |result: DebounceEventResult| {
-            if let Ok(events) = &result {
-                if events
+            if let Ok(events) = result
+                && events
                     .iter()
                     .any(|e| matches!(e.event.kind, Create(_) | Modify(_) | Remove(_)))
-                {
-                    let now = OffsetDateTime::now_local()
-                        .unwrap_or(OffsetDateTime::now_utc())
-                        .time()
-                        .format(SIMPLE_TIME_FORMAT)
-                        .unwrap_or("?".to_string());
+            {
+                let now = OffsetDateTime::now_local()
+                    .unwrap_or(OffsetDateTime::now_utc())
+                    .time()
+                    .format(SIMPLE_TIME_FORMAT)
+                    .unwrap_or("?".to_string());
 
-                    println!("[{now}] Detected change, rebuilding...");
+                println!("[{now}] detected change, rebuilding...");
 
-                    let state = Arc::clone(&state);
-
-                    rt.spawn(async move {
-                        match state.write().await.rebuild(args.light) {
-                            Ok(_) => {
-                                let _ = RELOAD_TX.send("reload".to_string());
-                            }
-                            Err(e) => {
-                                eprintln!("[{now}] Error during rebuild: {e}");
-                            }
+                let state = state.clone();
+                rt.spawn(async move {
+                    match state.write().await.rebuild(args.light_mode) {
+                        Ok(_) => {
+                            let _ = RELOAD_TX.send("reload".to_string());
                         }
-                    });
-                }
+                        Err(e) => {
+                            eprintln!("[{now}] error during rebuild: {e}");
+                        }
+                    }
+                });
             }
         }
     })
-    .context("Failed to set up file watcher!")?;
+    .context("failed to set up file watcher")?;
 
     debouncer
         .watch(root_path.as_path(), notify::RecursiveMode::Recursive)
-        .with_context(|| format!("Failed to watch path: {}", root_path.display()))?;
+        .with_context(|| format!("failed to watch path: {:?}", root_path))?;
 
-    state.write().await.rebuild(args.light)?;
+    state.write().await.rebuild(args.light_mode)?;
 
     let app = Router::new()
         .route("/", get(serve))
@@ -156,17 +159,16 @@ async fn main() -> Result<()> {
         .route("/~~~meread-reload", get(reload_handler));
 
     if args.open {
-        let _ = open::that(format!("http://{}", &args.address));
+        open::that(format!("http://{}", &args.address)).ok();
     }
 
-    println!("Serving {} on http://{}", root_path.display(), args.address);
+    println!("serving {} on http://{}", root_path.display(), args.address);
 
     let listener = TcpListener::bind(&args.address).await?;
     axum::serve(listener, app).await?;
     Ok(())
 }
 
-use axum::extract::State;
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {

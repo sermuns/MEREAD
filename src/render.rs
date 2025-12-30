@@ -1,5 +1,5 @@
-use anyhow::{Context, Result};
 use askama::Template;
+use color_eyre::{Result, eyre::Context, eyre::OptionExt};
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -12,11 +12,7 @@ impl RenderedMarkdown {
     pub fn new(path: &Path, light: bool) -> Result<Self> {
         let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
 
-        let rendered_markdown = render_markdown(
-            &markdown_content,
-            path.file_name().unwrap().to_str().unwrap(),
-            light,
-        )?;
+        let rendered_markdown = render_markdown(&markdown_content, path, light)?;
 
         Ok(Self {
             content: rendered_markdown,
@@ -28,11 +24,7 @@ impl RenderedMarkdown {
         let markdown_content =
             fs::read_to_string(&self.path).context("Failed to read markdown file")?;
 
-        self.content = render_markdown(
-            &markdown_content,
-            self.path.file_name().unwrap().to_str().unwrap(),
-            light,
-        )?;
+        self.content = render_markdown(&markdown_content, &self.path, light)?;
 
         Ok(())
     }
@@ -48,12 +40,16 @@ struct HtmlTemplate<'a> {
 
 pub fn render_markdown(
     markdown_content: &str,
-    title: &str,
+    markdown_file_path: &Path,
     light: bool,
-) -> Result<String, askama::Error> {
+) -> Result<String> {
     use crate::comrak_config::COMRAK_CONFIG;
+    let title = &markdown_file_path
+        .file_name()
+        .ok_or_eyre("weird path ending in ...")?
+        .to_string_lossy();
 
-    let comrak_config = COMRAK_CONFIG.get().unwrap();
+    let comrak_config = COMRAK_CONFIG.get().ok_or_eyre("failed getting config")?;
 
     let rendered_markdown = comrak::markdown_to_html_with_plugins(
         markdown_content,
@@ -61,10 +57,12 @@ pub fn render_markdown(
         &comrak_config.plugins,
     );
 
-    HtmlTemplate {
+    let rendered = HtmlTemplate {
         title,
         contents: &rendered_markdown,
         light,
     }
-    .render()
+    .render()?;
+
+    Ok(rendered)
 }

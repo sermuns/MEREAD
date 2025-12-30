@@ -1,3 +1,6 @@
+use color_eyre::eyre::Result;
+use color_eyre::eyre::eyre;
+use comrak::adapters::SyntaxHighlighterAdapter;
 use comrak::{self, Plugins, plugins};
 use once_cell::sync::OnceCell;
 use plugins::syntect::SyntectAdapter;
@@ -10,7 +13,7 @@ pub struct ComrakConfig {
 pub(crate) static COMRAK_CONFIG: OnceCell<ComrakConfig> = OnceCell::new();
 static SYNTECT_ADAPTER: OnceCell<SyntectAdapter> = OnceCell::new();
 
-pub fn init_comrak_config(light: bool) {
+pub fn init_comrak_config(light: bool) -> Result<()> {
     use comrak::{ExtensionOptions, RenderOptions, RenderPlugins};
     use plugins::syntect::SyntectAdapterBuilder;
 
@@ -21,20 +24,21 @@ pub fn init_comrak_config(light: bool) {
     // Funny code.. Maybe this is too cursed..
     theme_set.themes.insert(
         true.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))
-            .unwrap(),
+        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))?,
     );
     theme_set.themes.insert(
         false.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme"))).unwrap(),
+        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme")))?,
     );
-    // FIXME: HANDLE THE FUCKING ERRORS
-    let _ = SYNTECT_ADAPTER.set(
-        SyntectAdapterBuilder::new()
-            .theme_set(theme_set)
-            .theme(&light.to_string())
-            .build(),
-    );
+
+    SYNTECT_ADAPTER
+        .set(
+            SyntectAdapterBuilder::new()
+                .theme_set(theme_set)
+                .theme(&light.to_string())
+                .build(),
+        )
+        .map_err(|_| eyre!("SYNTECT_ADAPTER already initialized"))?;
 
     let options = comrak::Options {
         render: RenderOptions {
@@ -56,11 +60,16 @@ pub fn init_comrak_config(light: bool) {
 
     let plugins = Plugins {
         render: RenderPlugins {
-            codefence_syntax_highlighter: Some(SYNTECT_ADAPTER.get().unwrap()),
+            codefence_syntax_highlighter: SYNTECT_ADAPTER
+                .get()
+                .map(|a| a as &dyn SyntaxHighlighterAdapter),
             ..Default::default()
         },
     };
 
-    // FIXME: HANDLE THE FUCKING ERRORS
-    let _ = COMRAK_CONFIG.set(ComrakConfig { options, plugins });
+    COMRAK_CONFIG
+        .set(ComrakConfig { options, plugins })
+        .map_err(|_| eyre!("COMRAK_CONFIG already initialized"))?;
+
+    Ok(())
 }
