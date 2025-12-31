@@ -1,12 +1,15 @@
 #![deny(clippy::unwrap_used)]
 
 use axum::extract::State;
+use axum::response::Html;
 use axum::{Router, response::IntoResponse, routing::get};
 use clap::Parser;
 use color_eyre::Result;
 use color_eyre::eyre::Context;
 use color_eyre::eyre::OptionExt;
 use color_eyre::eyre::ensure;
+use notify::EventKind::{Create, Modify, Remove};
+use notify_debouncer_full::{DebounceEventResult, new_debouncer};
 use std::fs;
 use std::time::Duration;
 use std::{path::PathBuf, sync::Arc};
@@ -76,9 +79,11 @@ async fn main() -> Result<()> {
     if let Some(export_dir) = &args.export_dir {
         ensure!(
             args.force || !export_dir.exists(),
-            "export directory already exists: {}, and --force was not supplied",
-            export_dir.display()
+            "export directory {:?} already exists and --force was not supplied",
+            export_dir
         );
+
+        fs::create_dir_all(export_dir).context("failed to create export directory")?;
 
         let markdown_content = fs::read_to_string(&markdown_file_path)
             .context("failed to read markdown file for export")?;
@@ -86,15 +91,12 @@ async fn main() -> Result<()> {
         let rendered_html =
             render_markdown(&markdown_content, &markdown_file_path, args.light_mode)?;
 
-        fs::create_dir_all(export_dir).context("failed to create export directory")?;
-
         fs::write(export_dir.join("index.html"), rendered_html).context("failed to write HTML")?;
 
         for path in EmbeddedAssets::iter() {
-            let path_ref = path.as_ref();
             fs::write(
-                export_dir.join(path_ref),
-                EmbeddedAssets::get(path_ref)
+                export_dir.join(path.as_ref()),
+                EmbeddedAssets::get(&path)
                     .ok_or_eyre("failed getting asset")?
                     .data,
             )?;
@@ -108,8 +110,6 @@ async fn main() -> Result<()> {
         args.light_mode,
     )?));
 
-    use notify::EventKind::{Create, Modify, Remove};
-    use notify_debouncer_full::{DebounceEventResult, new_debouncer};
     let mut debouncer = new_debouncer(Duration::from_millis(250), None, {
         let rt = tokio::runtime::Handle::current();
         let state = state.clone();
@@ -144,7 +144,7 @@ async fn main() -> Result<()> {
     .context("failed to set up file watcher")?;
 
     debouncer
-        .watch(root_path.as_path(), notify::RecursiveMode::Recursive)
+        .watch(root_path.as_ref(), notify::RecursiveMode::Recursive)
         .with_context(|| format!("failed to watch path: {:?}", root_path))?;
 
     state.write().await.rebuild(args.light_mode)?;
@@ -172,7 +172,6 @@ async fn main() -> Result<()> {
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
-    use axum::response::Html;
     let content = rendered_markdown.read().await.content.clone();
     Html(content)
 }

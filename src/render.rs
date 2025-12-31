@@ -1,10 +1,11 @@
 use askama::Template;
+use axum::body::Bytes;
 use color_eyre::{Result, eyre::Context, eyre::OptionExt};
 use std::fs;
 use std::path::{Path, PathBuf};
 
 pub struct RenderedMarkdown {
-    pub content: String,
+    pub content: Bytes,
     pub path: PathBuf,
 }
 
@@ -42,7 +43,7 @@ pub fn render_markdown(
     markdown_content: &str,
     markdown_file_path: &Path,
     light: bool,
-) -> Result<String> {
+) -> Result<Bytes> {
     use crate::comrak_config::COMRAK_CONFIG;
     let title = &markdown_file_path
         .file_name()
@@ -64,5 +65,5 @@ pub fn render_markdown(
     }
     .render()?;
 
-    Ok(rendered)
+    Ok(rendered.into())
 }

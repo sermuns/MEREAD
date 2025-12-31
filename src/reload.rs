@@ -1,3 +1,6 @@
+use axum::body;
+use axum::http::StatusCode;
+use axum::middleware::ResponseAxumBody;
 use axum::{
     extract::Request,
     middleware::Next,
@@ -41,21 +44,15 @@ pub async fn reload_handler() -> Sse<impl Stream<Item = Result<Event, Infallible
 }
 
 pub async fn append_livereload_script(request: Request, next: Next) -> Response {
-    use axum::body;
-    use axum::http::StatusCode;
-
     let response = next.run(request).await;
 
-    if response.status() != StatusCode::OK {
-        return response;
-    }
-
-    let is_html = response
+    let content_type = response
         .headers()
         .get(hyper::header::CONTENT_TYPE)
-        .is_some();
+        .and_then(|v| v.to_str().ok())
+        .unwrap_or("");
 
-    if !is_html {
+    if !content_type.starts_with("text/html") {
         return response;
     }
 
