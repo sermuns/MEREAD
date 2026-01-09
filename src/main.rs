@@ -3,7 +3,7 @@
 use axum::extract::State;
 use axum::response::Html;
 use axum::{Router, response::IntoResponse, routing::get};
-use clap::Parser;
+use clap::{CommandFactory, Parser};
 use color_eyre::Result;
 use color_eyre::eyre::Context;
 use color_eyre::eyre::OptionExt;
@@ -54,11 +54,21 @@ struct Args {
     /// Render page in light-mode style
     #[arg(long, short)]
     light_mode: bool,
+
+    /// Print manpage to stdout and exit
+    #[arg(long)]
+    generate_manpage: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let args = Args::parse();
+
+    if args.generate_manpage {
+        let cmd = Args::command();
+        clap_mangen::Man::new(cmd).render(&mut std::io::stdout())?;
+        return Ok(());
+    }
 
     let root_path = Arc::new(args.path);
 
