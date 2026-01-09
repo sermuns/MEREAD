@@ -14,19 +14,19 @@ use std::fs;
 use std::time::Duration;
 use std::{path::PathBuf, sync::Arc};
 use time::OffsetDateTime;
+use time::format_description::BorrowedFormatItem;
+use time::macros::format_description;
 use tokio::net::TcpListener;
 use tokio::sync::RwLock;
 use tower_http::services::ServeDir;
 
-mod assets;
-mod comrak_config;
-mod reload;
-mod render;
+use meread::assets::{EmbeddedAssets, assets_handler};
+use meread::comrak_config::init_comrak_config;
+use meread::reload::{RELOAD_TX, append_livereload_script, reload_handler};
+use meread::render::{RenderedMarkdown, render_markdown};
 
-use assets::{EmbeddedAssets, assets_handler};
-use comrak_config::init_comrak_config;
-use reload::{RELOAD_TX, append_livereload_script, reload_handler};
-use render::{RenderedMarkdown, render_markdown};
+const SIMPLE_TIME_FORMAT: &[BorrowedFormatItem<'_>] =
+    format_description!("[hour]:[minute]:[second]");
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -55,12 +55,6 @@ struct Args {
     #[arg(long, short)]
     light_mode: bool,
 }
-
-use time::format_description::BorrowedFormatItem;
-use time::macros::format_description;
-
-const SIMPLE_TIME_FORMAT: &[BorrowedFormatItem<'_>] =
-    format_description!("[hour]:[minute]:[second]");
 
 #[tokio::main]
 async fn main() -> Result<()> {
