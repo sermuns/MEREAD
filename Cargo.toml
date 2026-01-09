@@ -1,6 +1,6 @@
 [package]
 name = "meread"
-version = "0.3.2"
+version = "0.4.0"
 description = "preview github flavored markdown locally"
 repository = "https://github.com/sermuns/meread"
 license = "WTFPL"

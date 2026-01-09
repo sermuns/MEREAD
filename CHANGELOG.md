@@ -1,10 +1,40 @@
 # Changelog
 
-## [0.3.2](https://github.com/sermuns/MEREAD/compare/v0.3.1..0.3.2) - 2025-12-02
+## [0.4.0](https://github.com/sermuns/MEREAD/compare/v0.3.2..0.4.0) - 2026-01-09
+
+### 🚀 Features
+
+- add math support by @sermuns in [db58536](https://github.com/sermuns/MEREAD/commit/db58536fd67ecb2ece3dc65bd5c40f1e6cb20c74)
+
+### 💼 Other
+
+- **(deps)** bump dependencies by @sermuns in [817ee8b](https://github.com/sermuns/MEREAD/commit/817ee8b2e29da126ec826ab65e92fd6ae030df8c)
+
+### 🚜 Refactor
+
+- change from anyhow->color_eyre, deny unwrap_used, minor cleanup by @sermuns in [3572a95](https://github.com/sermuns/MEREAD/commit/3572a9506be4ad876e780e6ee163d520db649f49)
+- try to fix past sins. by @sermuns in [d98f173](https://github.com/sermuns/MEREAD/commit/d98f173350d4fd3de79e235c077947810691524b)
+
+### ⚡ Performance
+
+- more optimization in release build by @sermuns in [e334f4c](https://github.com/sermuns/MEREAD/commit/e334f4c78d30bc07c2404e03d9c907fd8df9a1d8)
+
+### 🎨 Styling
+
+- use lib.rs file, reorder imports by @sermuns in [b0694d5](https://github.com/sermuns/MEREAD/commit/b0694d5018da5a51b26dd28c571426c88428f69a)
+
+### ⚙️ Miscellaneous Tasks
+
+- remove unused imports by @sermuns in [2113826](https://github.com/sermuns/MEREAD/commit/2113826615622f3e2375b48173f33f3a5b45dfd5)
+## [v0.3.2](https://github.com/sermuns/MEREAD/compare/v0.3.1..v0.3.2) - 2025-12-02
 
 ### 💼 Other
 
 - add docker and publish action by @sermuns in [9d2bd84](https://github.com/sermuns/MEREAD/commit/9d2bd84076e45cf3fb5ddaf114670ec03ecd6cec)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release meread version 0.3.2 by @sermuns in [8f8c78a](https://github.com/sermuns/MEREAD/commit/8f8c78aac6b650441e511330078b77f6508f000b)
 ## [v0.3.1](https://github.com/sermuns/MEREAD/compare/v0.3.0..v0.3.1) - 2025-12-02
 
 ### 💼 Other
