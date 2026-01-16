@@ -1,6 +1,15 @@
 # Changelog
 
-## [0.4.0](https://github.com/sermuns/MEREAD/compare/v0.3.2..0.4.0) - 2026-01-09
+## [0.5.0](https://github.com/sermuns/MEREAD/compare/v0.4.0..0.5.0) - 2026-01-16
+
+### 🚀 Features
+
+- add manpage generation, closing #4 by @sermuns in [230e612](https://github.com/sermuns/MEREAD/commit/230e6129a2e0574631370a131bbfd9706cac2232)
+
+### 📚 Documentation
+
+- document manpage generation by @sermuns in [d5318b9](https://github.com/sermuns/MEREAD/commit/d5318b9a4b4481c4f45991282ed4b59df8dfda11)
+## [v0.4.0](https://github.com/sermuns/MEREAD/compare/v0.3.2..v0.4.0) - 2026-01-09
 
 ### 🚀 Features
 
@@ -26,6 +35,7 @@
 ### ⚙️ Miscellaneous Tasks
 
 - remove unused imports by @sermuns in [2113826](https://github.com/sermuns/MEREAD/commit/2113826615622f3e2375b48173f33f3a5b45dfd5)
+- Release meread version 0.4.0 by @sermuns in [290864d](https://github.com/sermuns/MEREAD/commit/290864d1c5d5d302e4b94816af003a812d1286b1)
 ## [v0.3.2](https://github.com/sermuns/MEREAD/compare/v0.3.1..v0.3.2) - 2025-12-02
 
 ### 💼 Other
