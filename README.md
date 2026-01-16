@@ -80,3 +80,13 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
   cd meread
   cargo install
   ```
+
+## Manpages
+
+Can be installed by
+
+```bash
+mkdir -p ~/.local/share/man/man1/
+meread --generate-manpage > ~/.local/share/man/man1/meread.1
+```
+
