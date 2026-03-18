@@ -1,29 +1,29 @@
 #![deny(clippy::unwrap_used)]
 
-use axum::extract::State;
-use axum::response::Html;
-use axum::{Router, response::IntoResponse, routing::get};
+use axum::{
+    Router,
+    extract::State,
+    response::{Html, IntoResponse},
+    routing::get,
+};
 use clap::{CommandFactory, Parser};
-use color_eyre::Result;
-use color_eyre::eyre::Context;
-use color_eyre::eyre::OptionExt;
-use color_eyre::eyre::ensure;
+use color_eyre::{
+    Result,
+    eyre::{Context, ContextCompat, OptionExt, ensure},
+};
 use notify::EventKind::{Create, Modify, Remove};
 use notify_debouncer_full::{DebounceEventResult, new_debouncer};
-use std::fs;
-use std::time::Duration;
-use std::{path::PathBuf, sync::Arc};
-use time::OffsetDateTime;
-use time::format_description::BorrowedFormatItem;
-use time::macros::format_description;
-use tokio::net::TcpListener;
-use tokio::sync::RwLock;
+use std::{fs, path::PathBuf, sync::Arc, time::Duration};
+use time::{OffsetDateTime, format_description::BorrowedFormatItem, macros::format_description};
+use tokio::{net::TcpListener, sync::RwLock};
 use tower_http::services::ServeDir;
 
-use meread::assets::{EmbeddedAssets, assets_handler};
-use meread::comrak_config::init_comrak_config;
-use meread::reload::{RELOAD_TX, append_livereload_script, reload_handler};
-use meread::render::{RenderedMarkdown, render_markdown};
+use meread::{
+    assets::{EmbeddedAssets, assets_handler},
+    comrak_config::init_comrak_config,
+    reload::{RELOAD_TX, append_livereload_script, reload_handler},
+    render::{RenderedMarkdown, render_markdown},
+};
 
 const SIMPLE_TIME_FORMAT: &[BorrowedFormatItem<'_>] =
     format_description!("[hour]:[minute]:[second]");
@@ -70,12 +70,10 @@ async fn main() -> Result<()> {
         return Ok(());
     }
 
-    let root_path = Arc::new(args.path);
-
-    let markdown_file_path = if root_path.is_dir() {
-        root_path.join("README.md")
+    let markdown_file_path = if args.path.is_dir() {
+        args.path.join("README.md")
     } else {
-        root_path.to_path_buf()
+        args.path
     };
 
     init_comrak_config(args.light_mode)?;
@@ -148,8 +146,13 @@ async fn main() -> Result<()> {
     .context("failed to set up file watcher")?;
 
     debouncer
-        .watch(root_path.as_ref(), notify::RecursiveMode::Recursive)
-        .with_context(|| format!("failed to watch path: {:?}", root_path))?;
+        .watch(
+            markdown_file_path
+                .parent()
+                .context("trying to watch file in root / or something??")?,
+            notify::RecursiveMode::Recursive,
+        )
+        .with_context(|| format!("failed to watch path: {:?}", markdown_file_path))?;
 
     state.write().await.rebuild(args.light_mode)?;
 
@@ -166,7 +169,11 @@ async fn main() -> Result<()> {
         open::that(format!("http://{}", &args.address)).ok();
     }
 
-    println!("serving {} on http://{}", root_path.display(), args.address);
+    println!(
+        "serving {} on http://{}",
+        markdown_file_path.display(),
+        args.address
+    );
 
     let listener = TcpListener::bind(&args.address).await?;
     axum::serve(listener, app).await?;
