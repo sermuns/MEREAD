@@ -1,9 +1,6 @@
-use color_eyre::eyre::Result;
-use color_eyre::eyre::eyre;
-use comrak::adapters::SyntaxHighlighterAdapter;
+use color_eyre::eyre::{Result, eyre};
 use comrak::{self, options::Plugins, plugins};
 use once_cell::sync::OnceCell;
-use plugins::syntect::SyntectAdapter;
 use plugins::syntect::SyntectAdapterBuilder;
 use std::io::Cursor;
 use syntect::highlighting::ThemeSet;
@@ -14,29 +11,20 @@ pub struct ComrakConfig {
 }
 
 pub(crate) static COMRAK_CONFIG: OnceCell<ComrakConfig> = OnceCell::new();
-static SYNTECT_ADAPTER: OnceCell<SyntectAdapter> = OnceCell::new();
 
 pub fn init_comrak_config(light: bool) -> Result<()> {
     let mut theme_set = ThemeSet::new();
 
-    // Funny code.. Maybe this is too cursed..
     theme_set.themes.insert(
-        true.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("light-default.tmTheme")))?,
+        "InspiredGitHub".to_string(),
+        if light {
+            ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!(
+                "../themes/light-default.tmTheme"
+            )))?
+        } else {
+            ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("../themes/dark.tmTheme")))?
+        },
     );
-    theme_set.themes.insert(
-        false.to_string(),
-        ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!("dark.tmTheme")))?,
-    );
-
-    SYNTECT_ADAPTER
-        .set(
-            SyntectAdapterBuilder::new()
-                .theme_set(theme_set)
-                .theme(&light.to_string())
-                .build(),
-        )
-        .map_err(|_| eyre!("SYNTECT_ADAPTER already initialized"))?;
 
     let options = comrak::Options {
         render: comrak::options::Render {
@@ -58,13 +46,14 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
         ..Default::default()
     };
 
+    let adapter = Box::leak(Box::new(
+        SyntectAdapterBuilder::new().theme_set(theme_set).build(),
+    ));
     let plugins = Plugins {
-        render: comrak::options::RenderPlugins {
-            codefence_syntax_highlighter: SYNTECT_ADAPTER
-                .get()
-                .map(|a| a as &dyn SyntaxHighlighterAdapter),
-            ..Default::default()
-        },
+        render: comrak::options::RenderPlugins::builder()
+            .codefence_syntax_highlighter(adapter)
+            .build(),
+        ..Default::default()
     };
 
     COMRAK_CONFIG
@@ -73,4 +62,3 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
 
     Ok(())
 }
-
