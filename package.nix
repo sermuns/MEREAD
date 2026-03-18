@@ -1,16 +1,17 @@
 {
-  lib,
-  rustPlatform,
+  pkgs,
+  lib ? pkgs.lib,
+  naersk,
   ...
 }: let
+  naersk' = pkgs.callPackage naersk {};
   toml = (lib.importTOML ./Cargo.toml).package;
 in
-  rustPlatform.buildRustPackage {
+  naersk'.buildPackage {
     pname = toml.name;
     inherit (toml) version;
 
     src = ./.;
-    cargoLock.lockFile = ./Cargo.lock;
 
     meta = {
       inherit (toml) description license;

@@ -3,9 +3,13 @@
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
+    naersk = {
+      url = "github:nix-community/naersk";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
-  outputs = { self, nixpkgs, }: let
+  outputs = { self, nixpkgs, naersk, }: let
     systems = [
       "x86_64-linux"
       "aarch64-linux"
@@ -17,7 +21,7 @@
       (system: f nixpkgs.legacyPackages.${system});
   in {
     packages = forEachSystem (pkgs: rec {
-      meread = pkgs.callPackage ./package.nix {};
+      meread = import ./package.nix {inherit pkgs naersk;};
       default = meread;
     });
   };
