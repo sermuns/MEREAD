@@ -63,6 +63,11 @@ struct Args {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
+    color_eyre::config::HookBuilder::default()
+        .display_env_section(false)
+        .display_location_section(cfg!(debug_assertions))
+        .install()?;
+
     let args = Args::parse();
 
     if args.generate_manpage {
