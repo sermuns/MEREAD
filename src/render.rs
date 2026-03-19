@@ -7,7 +7,6 @@ use comrak::nodes::AlertType;
 use comrak::nodes::NodeValue;
 use comrak::{Arena, parse_document};
 use math_core::LatexToMathML;
-use math_core::MathCoreConfig;
 use math_core::MathDisplay;
 use std::fmt::Write;
 use std::fs;

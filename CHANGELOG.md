@@ -1,6 +1,36 @@
 # Changelog
 
-## [0.5.0](https://github.com/sermuns/MEREAD/compare/v0.4.0..0.5.0) - 2026-01-16
+## [0.5.1](https://github.com/sermuns/MEREAD/compare/v0.5.0..0.5.1) - 2026-03-19
+
+### 🚀 Features
+
+- nixpkgs support ❄️ (#11) by @juneb125 in [#11](https://github.com/sermuns/MEREAD/pull/11)
+- begin adding support for alerts #5 by @sermuns in [39e2a68](https://github.com/sermuns/MEREAD/commit/39e2a68c12ea3b53be01b82bd8c2788e8aff2bec)
+- fully implemented alerts, with icons by @sermuns in [e5ae1b2](https://github.com/sermuns/MEREAD/commit/e5ae1b2151d326b3436c8efd2a46aca2b7e4b6a6)
+
+### 🐛 Bug Fixes
+
+- idiotic bug with wrong path to font assets... by @sermuns in [99daf5a](https://github.com/sermuns/MEREAD/commit/99daf5af5ef9a3b5330d2c62a69176d54c117639)
+
+### 🚜 Refactor
+
+- simplify comrak config creation by @sermuns in [921634c](https://github.com/sermuns/MEREAD/commit/921634c6446415041d6f129bcef957ca51b23342)
+- merge imports, fix bug when targeting file by @sermuns in [65136fb](https://github.com/sermuns/MEREAD/commit/65136fbf4d7fc7d477aa3a3d1ad5513d66441f49)
+- simplify asset get logic by @sermuns in [9075602](https://github.com/sermuns/MEREAD/commit/907560239dc2050861b08dc6909ac919aa237826)
+- move export into own mod by @sermuns in [2ec86ca](https://github.com/sermuns/MEREAD/commit/2ec86ca81c98bc719073d6c23904322af989014b)
+- minor changes to main by @sermuns in [e4db101](https://github.com/sermuns/MEREAD/commit/e4db10171e68de2c34b038e3ce7662fb59a6b716)
+- use singlethreaded tokio by @sermuns in [082223b](https://github.com/sermuns/MEREAD/commit/082223bdec645cbdf446c6be201adbe347a97371)
+
+### ⚙️ Miscellaneous Tasks
+
+- move themes to own directory by @sermuns in [8926aaf](https://github.com/sermuns/MEREAD/commit/8926aaf73980efc10ce0419a01b4adeffd39ab6c)
+- update deps, cut down on deps by @sermuns in [d47c696](https://github.com/sermuns/MEREAD/commit/d47c6966563d89d5821e683baa97182216bf8390)
+- install color-eyre by @sermuns in [ccb1a8c](https://github.com/sermuns/MEREAD/commit/ccb1a8cdb1950eb813bc6497ba595e48be7fe911)
+- sort deps by @sermuns in [62174c4](https://github.com/sermuns/MEREAD/commit/62174c43c0459694c416316f9f74b2ec205139f9)
+- update lockfile by @sermuns in [2c4a615](https://github.com/sermuns/MEREAD/commit/2c4a615d4cbd76c20b37e7ea563a4c8c61008f53)
+- remove unused bacon.toml by @sermuns in [50ea7df](https://github.com/sermuns/MEREAD/commit/50ea7df1f651d2836221dae8839ffdcb347bf46c)
+- remove unused import by @sermuns in [7beb692](https://github.com/sermuns/MEREAD/commit/7beb692033dc3cdc8a83158fe1358ef96ddd6ebd)
+## [v0.5.0](https://github.com/sermuns/MEREAD/compare/v0.4.0..v0.5.0) - 2026-01-16
 
 ### 🚀 Features
 
@@ -9,6 +39,10 @@
 ### 📚 Documentation
 
 - document manpage generation by @sermuns in [d5318b9](https://github.com/sermuns/MEREAD/commit/d5318b9a4b4481c4f45991282ed4b59df8dfda11)
+
+### ⚙️ Miscellaneous Tasks
+
+- Release meread version 0.5.0 by @sermuns in [b434f48](https://github.com/sermuns/MEREAD/commit/b434f48d0fbd97259d1fb7333de81cf007023324)
 ## [v0.4.0](https://github.com/sermuns/MEREAD/compare/v0.3.2..v0.4.0) - 2026-01-09
 
 ### 🚀 Features
