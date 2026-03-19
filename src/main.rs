@@ -61,7 +61,7 @@ struct Args {
     generate_manpage: bool,
 }
 
-#[tokio::main]
+#[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
     let args = Args::parse();
 
