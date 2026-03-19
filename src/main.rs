@@ -1,28 +1,24 @@
 #![deny(clippy::unwrap_used)]
 
-use axum::{
-    Router,
-    extract::State,
-    response::{Html, IntoResponse},
-    routing::get,
-};
+use axum::{Router, extract::State, response::IntoResponse, routing::get};
 use clap::{CommandFactory, Parser};
 use color_eyre::{
     Result,
-    eyre::{Context, ContextCompat, OptionExt, ensure},
+    eyre::{Context, ContextCompat},
 };
 use notify::EventKind::{Create, Modify, Remove};
 use notify_debouncer_full::{DebounceEventResult, new_debouncer};
-use std::{fs, path::PathBuf, sync::Arc, time::Duration};
+use std::{path::PathBuf, sync::Arc, time::Duration};
 use time::{OffsetDateTime, format_description::BorrowedFormatItem, macros::format_description};
 use tokio::{net::TcpListener, sync::RwLock};
 use tower_http::services::ServeDir;
 
 use meread::{
-    assets::{EmbeddedAssets, assets_handler},
+    assets::assets_handler,
     comrak_config::init_comrak_config,
+    export::export,
     reload::{RELOAD_TX, append_livereload_script, reload_handler},
-    render::{RenderedMarkdown, render_markdown},
+    render::RenderedMarkdown,
 };
 
 const SIMPLE_TIME_FORMAT: &[BorrowedFormatItem<'_>] =
@@ -79,32 +75,7 @@ async fn main() -> Result<()> {
     init_comrak_config(args.light_mode)?;
 
     if let Some(export_dir) = &args.export_dir {
-        ensure!(
-            args.force || !export_dir.exists(),
-            "export directory {:?} already exists and --force was not supplied",
-            export_dir
-        );
-
-        fs::create_dir_all(export_dir).context("failed to create export directory")?;
-
-        let markdown_content = fs::read_to_string(&markdown_file_path)
-            .context("failed to read markdown file for export")?;
-
-        let rendered_html =
-            render_markdown(&markdown_content, &markdown_file_path, args.light_mode)?;
-
-        fs::write(export_dir.join("index.html"), rendered_html).context("failed to write HTML")?;
-
-        for path in EmbeddedAssets::iter() {
-            fs::write(
-                export_dir.join(path.as_ref()),
-                EmbeddedAssets::get(&path)
-                    .ok_or_eyre("failed getting asset")?
-                    .data,
-            )?;
-        }
-        println!("Exported to {}", export_dir.display());
-        return Ok(());
+        return export(&markdown_file_path, export_dir, args.force, args.light_mode);
     }
 
     let state = Arc::new(RwLock::new(RenderedMarkdown::new(
@@ -183,6 +154,5 @@ async fn main() -> Result<()> {
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
-    let content = rendered_markdown.read().await.content.clone();
-    Html(content)
+    rendered_markdown.read().await.content.clone()
 }
