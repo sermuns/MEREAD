@@ -34,7 +34,7 @@ There are other tools that get the job done, better or worse, but they all have 
 
 | Tool                                                                     | Written in | Biggest drawback                                                                                |
 | ------------------------------------------------------------------------ | ---------- | ----------------------------------------------------------------------------------------------- |
-| [grip](https://github.com/joeyespo/grip)                                 | Python     | Uses GitHub:s markdown API to render Markdown files, causing unnecessary usage of web requests. |
+| [grip](https://github.com/joeyespo/grip)                                 | Python     | Uses GitHub's markdown API to render Markdown files, causing unnecessary usage of web requests. |
 | [gh markdown-preview](https://github.com/yusukebe/gh-markdown-preview)   | Go         | Is meant to be used as extension in `gh`, GitHub's CLI.                                         |
 | [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) | Typescript | Requires Neovim.                                                                                |
 
@@ -47,14 +47,12 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
 - You can download and unpack the
   latest release from the [releases page](https://github.com/sermuns/meread/releases/latest).
 
-- Using [`cargo-binstall`](https://github.com/cargo-bins/cargo-binstall)
-
+- Using [`cargo-binstall`](https://github.com/cargo-bins/cargo-binstall):
   ```bash
   cargo binstall meread
   ```
 
 - Using [`ubi`](https://github.com/houseabsolute/ubi):
-
   ```bash
   ubi -p sermuns/meread
   ```
@@ -68,6 +66,37 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
   # `cargo-binstall` under the hood
   mise use -g cargo:meread
   ```
+
+- Using nix flakes (one-off):
+  ```bash
+  nix run github:sermuns/meread
+  ```
+
+- Using nix flakes:
+  1. Add MEREAD to your system `flake.nix`'s inputs
+     ```nix
+     {
+       inputs = {
+         nixpkgs.url = "github:NixOS/nixpkgs/unstable";
+         meread = {
+           url = "github:sermuns/meread";
+           inputs.nixpkgs.follows = "nixpkgs";
+         };
+       };
+     }
+     ```
+  2. Add the MEREAD package to your `environment.systemPackages` list
+     ```nix
+     {
+       pkgs,
+       inputs,
+     }: {
+       environment.systemPackages = [
+         inputs.meread.packages.${pkgs.stdenv.hostPlatform.system}.default
+       ];
+     }
+     ```
+  3. Rebuild your system with `nixos-rebuild` (or `darwin-rebuild` on MacOS)
 
 ### From source
 
