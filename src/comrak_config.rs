@@ -31,6 +31,7 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
             ..Default::default()
         },
         extension: comrak::options::Extension {
+            alerts: true,
             header_ids: Some("".to_string()),
             table: true,
             strikethrough: true,

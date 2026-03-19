@@ -169,5 +169,34 @@ hr {
 }
 
 .markdown-alert {
-	border-left: 0.1em solid black;
+	border-left: 0.25em solid var(--alert-border-color);
+	padding-left: 1em;
+	.markdown-alert-title {
+		color: var(--alert-title-color);
+	}
+}
+
+.markdown-alert-note {
+	--alert-border-color: #1f6feb;
+	--alert-title-color: #4493f8;
+}
+
+.markdown-alert-tip {
+	--alert-border-color: #238636;
+	--alert-title-color: #3fb950;
+}
+
+.markdown-alert-important {
+	--alert-border-color: #8957e5;
+	--alert-title-color: #ab7df8;
+}
+
+.markdown-alert-warning {
+	--alert-border-color: #9e6a03;
+	--alert-title-color: #d29922;
+}
+
+.markdown-alert-caution {
+	--alert-border-color: #da3633;
+	--alert-title-color: #f85149;
 }
