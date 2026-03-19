@@ -169,34 +169,41 @@ hr {
 }
 
 .markdown-alert {
+	margin: 2em 0;
 	border-left: 0.25em solid var(--alert-border-color);
 	padding-left: 1em;
+	p {
+		margin: 0.5em 0;
+	}
 	.markdown-alert-title {
 		color: var(--alert-title-color);
+		display: flex;
+		gap: 0.5em;
+		align-items: center;
 	}
 }
 
-.markdown-alert-note {
+.markdown-alert-Note {
 	--alert-border-color: #1f6feb;
 	--alert-title-color: #4493f8;
 }
 
-.markdown-alert-tip {
+.markdown-alert-Tip {
 	--alert-border-color: #238636;
 	--alert-title-color: #3fb950;
 }
 
-.markdown-alert-important {
+.markdown-alert-Important {
 	--alert-border-color: #8957e5;
 	--alert-title-color: #ab7df8;
 }
 
-.markdown-alert-warning {
+.markdown-alert-Warning {
 	--alert-border-color: #9e6a03;
 	--alert-title-color: #d29922;
 }
 
-.markdown-alert-caution {
+.markdown-alert-Caution {
 	--alert-border-color: #da3633;
 	--alert-title-color: #f85149;
 }
