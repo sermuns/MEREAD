@@ -1,6 +1,11 @@
 #![deny(clippy::unwrap_used)]
 
-use axum::{Router, extract::State, response::IntoResponse, routing::get};
+use axum::{
+    Router,
+    extract::State,
+    response::{Html, IntoResponse},
+    routing::get,
+};
 use clap::{CommandFactory, Parser};
 use color_eyre::{
     Result,
@@ -75,7 +80,8 @@ async fn main() -> Result<()> {
     init_comrak_config(args.light_mode)?;
 
     if let Some(export_dir) = &args.export_dir {
-        return export(&markdown_file_path, export_dir, args.force, args.light_mode);
+        export(&markdown_file_path, export_dir, args.force, args.light_mode)?;
+        return Ok(());
     }
 
     let state = Arc::new(RwLock::new(RenderedMarkdown::new(
@@ -90,7 +96,7 @@ async fn main() -> Result<()> {
             if let Ok(events) = result
                 && events
                     .iter()
-                    .any(|e| matches!(e.event.kind, Create(_) | Modify(_) | Remove(_)))
+                    .any(|e| matches!(e.kind, Create(_) | Modify(_) | Remove(_)))
             {
                 let now = OffsetDateTime::now_local()
                     .unwrap_or(OffsetDateTime::now_utc())
@@ -116,22 +122,19 @@ async fn main() -> Result<()> {
     })
     .context("failed to set up file watcher")?;
 
+    let parent_dir = markdown_file_path
+        .parent()
+        .context("trying to watch file in root / or something??")?;
+
     debouncer
-        .watch(
-            markdown_file_path
-                .parent()
-                .context("trying to watch file in root / or something??")?,
-            notify::RecursiveMode::Recursive,
-        )
+        .watch(parent_dir, notify::RecursiveMode::Recursive)
         .with_context(|| format!("failed to watch path: {:?}", markdown_file_path))?;
 
     state.write().await.rebuild(args.light_mode)?;
 
     let app = Router::new()
         .route("/", get(serve))
-        .fallback_service(
-            ServeDir::new(markdown_file_path.with_file_name("")).fallback(get(assets_handler)),
-        )
+        .fallback_service(ServeDir::new(parent_dir).fallback(get(assets_handler)))
         .with_state(state)
         .layer(axum::middleware::from_fn(append_livereload_script))
         .route("/~~~meread-reload", get(reload_handler));
@@ -154,5 +157,5 @@ async fn main() -> Result<()> {
 async fn serve(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
-    rendered_markdown.read().await.content.clone()
+    Html(rendered_markdown.read().await.content.clone())
 }
