@@ -1,5 +1,5 @@
-use axum::body;
 use axum::{
+    body,
     extract::Request,
     middleware::Next,
     response::{
@@ -8,11 +8,10 @@ use axum::{
     },
 };
 use futures::{Stream, StreamExt};
-use once_cell::sync::Lazy;
-use std::convert::Infallible;
+use std::{convert::Infallible, sync::LazyLock};
 use tokio::sync::broadcast;
 
-pub static RELOAD_TX: Lazy<broadcast::Sender<String>> = Lazy::new(|| {
+pub static RELOAD_TX: LazyLock<broadcast::Sender<String>> = LazyLock::new(|| {
     let (tx, _) = broadcast::channel(100);
     tx
 });

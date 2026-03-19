@@ -1,8 +1,7 @@
 use color_eyre::eyre::{Result, eyre};
 use comrak::{self, options::Plugins, plugins};
-use once_cell::sync::OnceCell;
 use plugins::syntect::SyntectAdapterBuilder;
-use std::io::Cursor;
+use std::{io::Cursor, sync::OnceLock};
 use syntect::highlighting::ThemeSet;
 
 pub struct ComrakConfig {
@@ -10,7 +9,7 @@ pub struct ComrakConfig {
     pub plugins: Plugins<'static>,
 }
 
-pub(crate) static COMRAK_CONFIG: OnceCell<ComrakConfig> = OnceCell::new();
+pub(crate) static COMRAK_CONFIG: OnceLock<ComrakConfig> = OnceLock::new();
 
 pub fn init_comrak_config(light: bool) -> Result<()> {
     let mut theme_set = ThemeSet::new();
@@ -49,12 +48,13 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
     let adapter = Box::leak(Box::new(
         SyntectAdapterBuilder::new().theme_set(theme_set).build(),
     ));
-    let plugins = Plugins {
-        render: comrak::options::RenderPlugins::builder()
-            .codefence_syntax_highlighter(adapter)
-            .build(),
-        ..Default::default()
-    };
+    let plugins = Plugins::builder()
+        .render(
+            comrak::options::RenderPlugins::builder()
+                .codefence_syntax_highlighter(adapter)
+                .build(),
+        )
+        .build();
 
     COMRAK_CONFIG
         .set(ComrakConfig { options, plugins })
