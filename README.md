@@ -38,6 +38,28 @@ There are other tools that get the job done, better or worse, but they all have 
 | [gh markdown-preview](https://github.com/yusukebe/gh-markdown-preview)   | Go         | Is meant to be used as extension in `gh`, GitHub's CLI.                                         |
 | [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) | Typescript | Requires Neovim.                                                                                |
 
+## Usage
+
+```present cargo run -- -h
+preview github flavored markdown locally
+
+Usage: meread [OPTIONS] [PATH]
+
+Arguments:
+  [PATH]  Path to markdown file or directory containing README.md [default: .]
+
+Options:
+  -e, --export-dir <EXPORT_DIR>  If supplied, will export the markdown file to HTML in the specified
+                                 directory
+  -f, --force                    Whether to overwrite the export directory if it exists
+  -a, --address <ADDRESS>        Address to bind the server to [default: localhost:3000]
+  -o, --open                     Whether to open the browser on serve
+  -l, --light-mode               Render page in light-mode style
+      --generate-manpage         Print manpage to stdout and exit
+  -h, --help                     Print help
+  -V, --version                  Print version
+```
+
 ## Installation
 
 ### From prebuilt binaries

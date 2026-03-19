@@ -1,20 +1,13 @@
 release:
+	#!/bin/sh
 	RUSTFLAGS="-D warnings" cargo build --release
-	cargo release --execute $(git cliff --bumped-version | cut -d'v' -f2)
+	VERSION=$(git cliff --bumped-version | cut -d'v' -f2)
+	cargo release -x $VERSION
+	git cliff -o CHANGELOG.md --tag $VERSION
+	git add CHANGELOG.md
+	git commit --amend --no-edit
+	git tag v$VERSION -f
 
-watch:
-	cargo watch -i public -x run
-
-serve:
-	~/.cargo/bin/http-server -i public
-
-build-release:
-  cargo build --release
-
-benchmark: build-release
-    hyperfine \
-      --shell=none \
-      'target/release/stil'
-
-[parallel]
-dev: serve watch
+push:
+	git push
+	git push --tags
