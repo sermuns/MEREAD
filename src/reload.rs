@@ -16,12 +16,13 @@ pub static RELOAD_TX: LazyLock<broadcast::Sender<String>> = LazyLock::new(|| {
     tx
 });
 
-static LIVERELOAD_SCRIPT_BYTES: &[u8] = br#"<script>
+static LIVERELOAD_SCRIPT_BYTES: &[u8] = b"<script>
     new EventSource('/~~~meread-reload').onmessage = (e) => {
         if (e.data === 'reload') window.location.reload()
     };
-</script>"#;
+</script>";
 
+#[allow(clippy::unused_async)]
 pub async fn reload_handler() -> Sse<impl Stream<Item = Result<Event, Infallible>>> {
     use std::time::Duration;
     use tokio_stream::wrappers::BroadcastStream;

@@ -8,6 +8,7 @@ use rust_embed::Embed;
 #[folder = "assets/"]
 pub struct EmbeddedAssets;
 
+#[allow(clippy::unused_async)]
 pub async fn assets_handler(uri: Uri) -> impl IntoResponse {
     let path = uri.path().trim_start_matches('/');
     if let Some(content) = EmbeddedAssets::get(path) {

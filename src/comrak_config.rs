@@ -32,7 +32,7 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
         },
         extension: comrak::options::Extension {
             alerts: true,
-            header_ids: Some("".to_string()),
+            header_ids: Some(String::new()),
             table: true,
             strikethrough: true,
             autolink: true,

@@ -1,5 +1,3 @@
-#![deny(clippy::unwrap_used)]
-
 use axum::{
     Router,
     extract::State,
@@ -18,7 +16,13 @@ use time::{OffsetDateTime, format_description::BorrowedFormatItem, macros::forma
 use tokio::{net::TcpListener, sync::RwLock};
 use tower_http::services::ServeDir;
 
-use meread::{
+mod assets;
+mod comrak_config;
+mod export;
+mod reload;
+mod render;
+
+use crate::{
     assets::assets_handler,
     comrak_config::init_comrak_config,
     export::export,
@@ -113,13 +117,10 @@ async fn main() -> Result<()> {
 
                 let state = state.clone();
                 rt.spawn(async move {
-                    match state.write().await.rebuild(args.light_mode) {
-                        Ok(_) => {
-                            let _ = RELOAD_TX.send("reload".to_string());
-                        }
-                        Err(e) => {
-                            eprintln!("[{now}] error during rebuild: {e}");
-                        }
+                    if let Err(e) = state.write().await.rebuild(args.light_mode) {
+                        eprintln!("[{now}] error during rebuild: {e}");
+                    } else {
+                        let _ = RELOAD_TX.send("reload".to_string());
                     }
                 });
             }
@@ -133,7 +134,7 @@ async fn main() -> Result<()> {
 
     debouncer
         .watch(parent_dir, notify::RecursiveMode::Recursive)
-        .with_context(|| format!("failed to watch path: {:?}", markdown_file_path))?;
+        .with_context(|| format!("failed to watch path: {}", markdown_file_path.display()))?;
 
     state.write().await.rebuild(args.light_mode)?;
 

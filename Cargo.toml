@@ -37,3 +37,11 @@ panic = "unwind"
 lto = true
 codegen-units = 1
 strip = true
+
+[lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+uninlined_format_args = "allow"
+trivially_copy_pass_by_ref = "deny"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+struct_excessive_bools = "allow"
