@@ -24,7 +24,7 @@ notify = "8"
 notify-debouncer-full = "0.7"
 open = "5"
 rust-embed = "8"
-syntect = "5.3"
+syntect = { version = "5.3", default-features = false, features = ["default-themes", "plist-load"] }
 time = { version = "0.3", default-features = false, features = ["formatting", "local-offset", "macros"] }
 tokio = { version = "1", features = ["macros", "rt"] }
 tokio-stream = { version = "0.1", default-features = false, features = ["sync"] }
