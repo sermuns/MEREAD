@@ -10,16 +10,16 @@ categories = ["command-line-utilities", "web-programming::http-server"]
 authors = ["Samuel Åkesson <sermuns@lysator.liu.se>"]
 
 [dependencies]
-askama = "0.15"
-axum = "0.8"
+askama = { version = "0.15", default-features = false, features = ["std", "derive"] }
+axum = { version = "0.8", default-features = false, features = ["tokio", "http1"] }
 clap = { version = "4", features = ["derive"] }
 clap_mangen = "0.2"
 color-eyre = { version = "0.6", default-features = false, features = ["track-caller"] }
-comrak = { version = "0.51", features = ["shortcodes", "syntect"] }
-futures = "0.3"
+comrak = { version = "0.51", default-features = false, features = ["bon", "shortcodes", "syntect"] }
+futures = { version = "0.3", default-features = false }
 hyper = { version = "1.8", default-features = false }
 math-core = "0.5"
-mime_guess = "2"
+mime_guess = { version = "2", default-features = false }
 notify = "8"
 notify-debouncer-full = "0.7"
 open = "5"
@@ -27,7 +27,7 @@ rust-embed = "8"
 syntect = "5.3"
 time = { version = "0.3", default-features = false, features = ["formatting", "local-offset", "macros"] }
 tokio = { version = "1", features = ["macros", "rt"] }
-tokio-stream = { version = "0.1", features = ["sync"] }
+tokio-stream = { version = "0.1", default-features = false, features = ["sync"] }
 tower-http = { version = "0.6", features = ["fs"] }
 
 [profile.release]
