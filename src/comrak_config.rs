@@ -32,15 +32,15 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
         },
         extension: comrak::options::Extension {
             alerts: true,
-            header_ids: Some(String::new()),
-            table: true,
-            strikethrough: true,
             autolink: true,
-            tagfilter: true,
             footnotes: true,
-            shortcodes: true,
+            header_ids: Some(String::new()),
             math_code: true,
             math_dollars: true,
+            shortcodes: true,
+            strikethrough: true,
+            table: true,
+            tagfilter: true,
             ..Default::default()
         },
         ..Default::default()
