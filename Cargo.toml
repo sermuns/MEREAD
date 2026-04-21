@@ -13,18 +13,18 @@ authors = ["Samuel Åkesson <sermuns@lysator.liu.se>"]
 askama = { version = "0.15", default-features = false, features = ["std", "derive"] }
 axum = { version = "0.8", default-features = false, features = ["tokio", "http1"] }
 clap = { version = "4", features = ["derive"] }
-clap_mangen = "0.2"
+clap_mangen = "0.3"
 color-eyre = { version = "0.6", default-features = false, features = ["track-caller"] }
 comrak = { version = "0.52", default-features = false, features = ["bon", "shortcodes", "syntect"] }
 futures = { version = "0.3", default-features = false }
 hyper = { version = "1.8", default-features = false }
-math-core = "0.5"
+math-core = "0.6"
 mime_guess = { version = "2", default-features = false }
 notify = "8"
 notify-debouncer-full = "0.7"
 open = "5"
 rust-embed = "8"
-syntect = { version = "5.3", default-features = false, features = ["default-themes", "plist-load"] }
+syntect = { version = "5", default-features = false, features = ["default-themes", "plist-load"] }
 time = { version = "0.3", default-features = false, features = ["formatting", "local-offset", "macros"] }
 tokio = { version = "1", features = ["macros", "rt"] }
 tokio-stream = { version = "0.1", default-features = false, features = ["sync"] }
