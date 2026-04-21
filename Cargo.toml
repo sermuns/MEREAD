@@ -15,7 +15,7 @@ axum = { version = "0.8", default-features = false, features = ["tokio", "http1"
 clap = { version = "4", features = ["derive"] }
 clap_mangen = "0.2"
 color-eyre = { version = "0.6", default-features = false, features = ["track-caller"] }
-comrak = { version = "0.51", default-features = false, features = ["bon", "shortcodes", "syntect"] }
+comrak = { version = "0.52", default-features = false, features = ["bon", "shortcodes", "syntect"] }
 futures = { version = "0.3", default-features = false }
 hyper = { version = "1.8", default-features = false }
 math-core = "0.5"

@@ -34,7 +34,7 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
             alerts: true,
             autolink: true,
             footnotes: true,
-            header_ids: Some(String::new()),
+            header_id_prefix: Some(String::new()),
             math_code: true,
             math_dollars: true,
             shortcodes: true,
