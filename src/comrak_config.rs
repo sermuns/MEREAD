@@ -41,6 +41,7 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
             strikethrough: true,
             table: true,
             tagfilter: true,
+            tasklist: true,
             ..Default::default()
         },
         ..Default::default()

@@ -82,6 +82,11 @@ li + li {
 	margin-top: 0.7em;
 }
 
+ul:has(input[type="checkbox"]) {
+	list-style: none;
+	padding-left: 1em;
+}
+
 pre {
 	display: flex;
 	line-height: 1.5;
