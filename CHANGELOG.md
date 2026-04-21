@@ -1,6 +1,23 @@
 # Changelog
 
-## [0.6.0](https://github.com/sermuns/MEREAD/compare/v0.5.0..0.6.0) - 2026-03-19
+## [0.7.0](https://github.com/sermuns/MEREAD/compare/v0.6.0..0.7.0) - 2026-04-21
+
+### 🚀 Features
+
+- support tasklists/checkboxes (#5) by @sermuns in [0ce6e53](https://github.com/sermuns/MEREAD/commit/0ce6e53218bba9393f365090c31db4aeafc37be2)
+
+### 🚜 Refactor
+
+- **(comrak)** sort fields of Extension by @sermuns in [f5fb4ef](https://github.com/sermuns/MEREAD/commit/f5fb4ef99a3f906bc7d0d47d22d8c7a0194ce352)
+- satisfy/configure clippy, remove lib.rs, just mods declare in main.rs by @sermuns in [a998a4c](https://github.com/sermuns/MEREAD/commit/a998a4cfb528eabaf401a9069912ee089c26f3a3)
+
+### ⚙️ Miscellaneous Tasks
+
+- use less dependency features (#12) by @sermuns in [c350a4f](https://github.com/sermuns/MEREAD/commit/c350a4f9f43a9f5552680252e9e6af28e23a8054)
+- use less syntect features (#12) by @sermuns in [508d5cc](https://github.com/sermuns/MEREAD/commit/508d5cc61934d48e37202f74c6bdd673b2a19f24)
+- remove cargo build from release by @sermuns in [08831b0](https://github.com/sermuns/MEREAD/commit/08831b0bf0cecf34df0e43892fb5bafb94bc97c8)
+- release v0.7.0 by Samuel Åkesson in [f1d0620](https://github.com/sermuns/MEREAD/commit/f1d0620b050bef358fd247b664421923c3595de6)
+## [v0.6.0](https://github.com/sermuns/MEREAD/compare/v0.5.0..v0.6.0) - 2026-03-19
 
 ### 🚀 Features
 
@@ -31,7 +48,7 @@
 - remove unused bacon.toml by @sermuns in [50ea7df](https://github.com/sermuns/MEREAD/commit/50ea7df1f651d2836221dae8839ffdcb347bf46c)
 - remove unused import by @sermuns in [7beb692](https://github.com/sermuns/MEREAD/commit/7beb692033dc3cdc8a83158fe1358ef96ddd6ebd)
 - update release experience, add precommit etc by @sermuns in [3664c7b](https://github.com/sermuns/MEREAD/commit/3664c7b297ee445cd566cf03b9001ba357020d31)
-- release v0.6.0 by Samuel Åkesson in [4715db7](https://github.com/sermuns/MEREAD/commit/4715db7e204990ac71cb445c92ef135bf330d8ea)
+- release v0.6.0 by @sermuns in [bbea6cd](https://github.com/sermuns/MEREAD/commit/bbea6cde6ad270fc99885666a0e815984010b246)
 ## [v0.5.0](https://github.com/sermuns/MEREAD/compare/v0.4.0..v0.5.0) - 2026-01-16
 
 ### 🚀 Features
