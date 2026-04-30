@@ -13,6 +13,13 @@ in
 
     src = ./.;
 
+    # for installManPage
+    nativeBuildInputs = [pkgs.installShellFiles];
+
+    postInstall = ''
+      installManPage ./meread.1
+    '';
+
     meta = {
       inherit (toml) description license;
       homepage = toml.repository;

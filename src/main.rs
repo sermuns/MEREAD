@@ -4,7 +4,7 @@ use axum::{
     response::{Html, IntoResponse},
     routing::get,
 };
-use clap::{CommandFactory, Parser};
+use clap::Parser;
 use color_eyre::{
     Result,
     eyre::{Context, ContextCompat},
@@ -59,10 +59,6 @@ struct Args {
     /// Render page in light-mode style
     #[arg(long, short)]
     light_mode: bool,
-
-    /// Print manpage to stdout and exit
-    #[arg(long)]
-    generate_manpage: bool,
 }
 
 #[tokio::main(flavor = "current_thread")]
@@ -73,12 +69,6 @@ async fn main() -> Result<()> {
         .install()?;
 
     let args = Args::parse();
-
-    if args.generate_manpage {
-        let cmd = Args::command();
-        clap_mangen::Man::new(cmd).render(&mut std::io::stdout())?;
-        return Ok(());
-    }
 
     let markdown_file_path = if args.path.is_dir() {
         args.path.join("README.md")
