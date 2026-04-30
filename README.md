@@ -55,7 +55,6 @@ Options:
   -a, --address <ADDRESS>        Address to bind the server to [default: localhost:3000]
   -o, --open                     Whether to open the browser on serve
   -l, --light-mode               Render page in light-mode style
-      --generate-manpage         Print manpage to stdout and exit
   -h, --help                     Print help
   -V, --version                  Print version
 ```
@@ -138,6 +137,10 @@ Can be installed by
 
 ```bash
 mkdir -p ~/.local/share/man/man1/
-meread --generate-manpage > ~/.local/share/man/man1/meread.1
-```
+# if downloaded from source using `git clone`:
+cp ./meread.1 ~/.local/share/man/man1/meread.1
 
+# otherwise:
+curl -fsSL -o ~/.local/share/man/man1/meread.1 \
+  "https://raw.githubusercontent.com/sermuns/MEREAD/main/meread.1"
+```
