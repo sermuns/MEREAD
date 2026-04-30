@@ -1,36 +1,50 @@
-.ie \n(.g .ds Aq \(aq
-.el .ds Aq '
-.TH meread 1 "meread 0.7.0"
+.TH MEREAD 1 ""
 .SH NAME
-meread \- preview github flavored markdown locally
+\fBmeread\fR \- preview github flavored markdown locally
+.
 .SH SYNOPSIS
-\fBmeread\fR [\fB\-e\fR|\fB\-\-export\-dir\fR] [\fB\-f\fR|\fB\-\-force\fR] [\fB\-a\fR|\fB\-\-address\fR] [\fB\-o\fR|\fB\-\-open\fR] [\fB\-l\fR|\fB\-\-light\-mode\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] [\fIPATH\fR]
+.B meread
+.RB [ \-e | \-\-export\-dir
+.IR directory ]
+.RB [ \-f | \-\-force ]
+.RB [ \-a | \-\-address
+.IR address ]
+.RB [ \-o | \-\-open ]
+.RB [ \-l | \-\-light\-mode ]
+.RB [ \-h | \-\-help ]
+.RB [ \-V | \-\-version ]
+.RI [ path ]
+.
 .SH DESCRIPTION
-preview github flavored markdown locally
+\fBmeread\fR is a command\-line tool for previewing Markdown files as they
+will be presented on GitHub, all completely locally and offline.
+.
 .SH OPTIONS
 .TP
-\fB\-e\fR, \fB\-\-export\-dir\fR \fI<EXPORT_DIR>\fR
-If supplied, will export the markdown file to HTML in the specified directory
+.I path
+Path to markdown file or directory containing README.md [default: \fB.\fR].
 .TP
-\fB\-f\fR, \fB\-\-force\fR
-Whether to overwrite the export directory if it exists
+.BR \-e ", " \-\-export\-dir " \fIdirectory\fR"
+If supplied, will export the markdown file to HTML in the specified directory.
 .TP
-\fB\-a\fR, \fB\-\-address\fR \fI<ADDRESS>\fR [default: localhost:3000]
-Address to bind the server to
+.BR \-f ", " \-\-force
+Whether to overwrite the export directory if it exists.
 .TP
-\fB\-o\fR, \fB\-\-open\fR
-Whether to open the browser on serve
+.BR \-a ", " \-\-address " \fIaddress\fR"
+The address to bind the server to [default: \fBlocalhost:3000\fR].
 .TP
-\fB\-l\fR, \fB\-\-light\-mode\fR
-Render page in light\-mode style
+.BR \-o ", " \-\-open
+Whether to open the browser on serve.
 .TP
-\fB\-h\fR, \fB\-\-help\fR
-Print help
+.BR \-l ", " \-\-light\-mode
+Render page in light\-mode style.
 .TP
-\fB\-V\fR, \fB\-\-version\fR
-Print version
+.BR \-h ", " \-\-help
+Print help.
 .TP
-[\fIPATH\fR] [default: .]
-Path to markdown file or directory containing README.md
-.SH VERSION
-v0.7.0
+.BR \-V ", " \-\-version
+Print version.
+.
+.SH BUGS
+Bugs can be reported on GitHub:
+.I https://github.com/sermuns/MEREAD/issues
