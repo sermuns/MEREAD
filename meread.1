@@ -1,0 +1,39 @@
+.ie \n(.g .ds Aq \(aq
+.el .ds Aq '
+.TH meread 1 "meread 0.7.0"
+.SH NAME
+meread \- preview github flavored markdown locally
+.SH SYNOPSIS
+\fBmeread\fR [\fB\-e\fR|\fB\-\-export\-dir\fR] [\fB\-f\fR|\fB\-\-force\fR] [\fB\-a\fR|\fB\-\-address\fR] [\fB\-o\fR|\fB\-\-open\fR] [\fB\-l\fR|\fB\-\-light\-mode\fR] [\fB\-\-generate\-manpage\fR] [\fB\-h\fR|\fB\-\-help\fR] [\fB\-V\fR|\fB\-\-version\fR] [\fIPATH\fR] 
+.SH DESCRIPTION
+preview github flavored markdown locally
+.SH OPTIONS
+.TP
+\fB\-e\fR, \fB\-\-export\-dir\fR \fI<EXPORT_DIR>\fR
+If supplied, will export the markdown file to HTML in the specified directory
+.TP
+\fB\-f\fR, \fB\-\-force\fR
+Whether to overwrite the export directory if it exists
+.TP
+\fB\-a\fR, \fB\-\-address\fR \fI<ADDRESS>\fR [default: localhost:3000]
+Address to bind the server to
+.TP
+\fB\-o\fR, \fB\-\-open\fR
+Whether to open the browser on serve
+.TP
+\fB\-l\fR, \fB\-\-light\-mode\fR
+Render page in light\-mode style
+.TP
+\fB\-\-generate\-manpage\fR
+Print manpage to stdout and exit
+.TP
+\fB\-h\fR, \fB\-\-help\fR
+Print help
+.TP
+\fB\-V\fR, \fB\-\-version\fR
+Print version
+.TP
+[\fIPATH\fR] [default: .]
+Path to markdown file or directory containing README.md
+.SH VERSION
+v0.7.0
