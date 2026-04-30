@@ -10,7 +10,7 @@ categories = ["command-line-utilities", "web-programming::http-server"]
 authors = ["Samuel Åkesson <sermuns@lysator.liu.se>"]
 
 [dependencies]
-askama = { version = "0.15", default-features = false, features = ["std", "derive"] }
+askama = { version = "0.16", default-features = false, features = ["std", "derive"] }
 axum = { version = "0.8", default-features = false, features = ["tokio", "http1"] }
 clap = { version = "4", features = ["derive"] }
 clap_mangen = "0.3"
