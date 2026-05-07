@@ -116,7 +116,7 @@ jobs:
           sed -n '/^## \[${{ steps.extract_version.outputs.version }}\].*$/,/^## /p' CHANGELOG.md | sed '$d' > RELEASE.md
 
       - name: Build | Publish
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           files: ${{ env.CRATE_NAME }}-*/${{ env.CRATE_NAME }}-*
           body_path: RELEASE.md
