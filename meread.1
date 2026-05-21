@@ -1,0 +1,50 @@
+.TH MEREAD 1 ""
+.SH NAME
+\fBmeread\fR \- preview github flavored markdown locally
+.
+.SH SYNOPSIS
+.B meread
+.RB [ \-e | \-\-export\-dir
+.IR directory ]
+.RB [ \-f | \-\-force ]
+.RB [ \-a | \-\-address
+.IR address ]
+.RB [ \-o | \-\-open ]
+.RB [ \-l | \-\-light\-mode ]
+.RB [ \-h | \-\-help ]
+.RB [ \-V | \-\-version ]
+.RI [ path ]
+.
+.SH DESCRIPTION
+\fBmeread\fR is a command\-line tool for previewing Markdown files as they
+will be presented on GitHub, all completely locally and offline.
+.
+.SH OPTIONS
+.TP
+.I path
+Path to markdown file or directory containing README.md [default: \fB.\fR].
+.TP
+.BR \-e ", " \-\-export\-dir " \fIdirectory\fR"
+If supplied, will export the markdown file to HTML in the specified directory.
+.TP
+.BR \-f ", " \-\-force
+Whether to overwrite the export directory if it exists.
+.TP
+.BR \-a ", " \-\-address " \fIaddress\fR"
+The address to bind the server to [default: \fBlocalhost:3000\fR].
+.TP
+.BR \-o ", " \-\-open
+Whether to open the browser on serve.
+.TP
+.BR \-l ", " \-\-light\-mode
+Render page in light\-mode style.
+.TP
+.BR \-h ", " \-\-help
+Print help.
+.TP
+.BR \-V ", " \-\-version
+Print version.
+.
+.SH BUGS
+Bugs can be reported on GitHub:
+.I https://github.com/sermuns/MEREAD/issues
