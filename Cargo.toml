@@ -17,7 +17,7 @@ clap_mangen = "0.3"
 color-eyre = { version = "0.6", default-features = false, features = ["track-caller"] }
 comrak = { version = "0.52", default-features = false, features = ["bon", "shortcodes", "syntect"] }
 futures = { version = "0.3", default-features = false }
-hyper = { version = "1.8", default-features = false }
+hyper = { version = "1.10", default-features = false }
 math-core = "0.6"
 mime_guess = { version = "2", default-features = false }
 notify = "8"
