@@ -24,11 +24,12 @@ notify = "8"
 notify-debouncer-full = "0.7"
 open = "5"
 rust-embed = "8"
-syntect = { version = "5", default-features = false, features = ["default-themes", "plist-load"] }
+syntect = { version = "5", default-features = false, features = ["default-fancy"] }
 time = { version = "0.3", default-features = false, features = ["formatting", "local-offset", "macros"] }
 tokio = { version = "1", features = ["macros", "rt"] }
 tokio-stream = { version = "0.1", default-features = false, features = ["sync"] }
 tower-http = { version = "0.6", features = ["fs"] }
+two-face = { version = "0.5", features = ["syntect-default-fancy"] }
 
 [profile.release]
 opt-level = 3

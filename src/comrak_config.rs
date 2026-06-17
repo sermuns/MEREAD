@@ -15,7 +15,7 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
     let mut theme_set = ThemeSet::new();
 
     theme_set.themes.insert(
-        "InspiredGitHub".to_string(),
+        String::new(), // hack
         if light {
             ThemeSet::load_from_reader(&mut Cursor::new(include_bytes!(
                 "../themes/light-default.tmTheme"
@@ -48,7 +48,11 @@ pub fn init_comrak_config(light: bool) -> Result<()> {
     };
 
     let adapter = Box::leak(Box::new(
-        SyntectAdapterBuilder::new().theme_set(theme_set).build(),
+        SyntectAdapterBuilder::new()
+            .syntax_set(two_face::syntax::extra_newlines())
+            .theme_set(theme_set)
+            .theme("")
+            .build(),
     ));
     let plugins = Plugins::builder()
         .render(
