@@ -49,8 +49,7 @@ Arguments:
   [PATH]  Path to markdown file or directory containing README.md [default: .]
 
 Options:
-  -e, --export-dir <EXPORT_DIR>  If supplied, will export the markdown file to HTML in the specified
-                                 directory
+  -e, --export-dir <EXPORT_DIR>  If supplied, will export the markdown file to HTML in the specified directory
   -f, --force                    Whether to overwrite the export directory if it exists
   -a, --address <ADDRESS>        Address to bind the server to [default: localhost:3000]
   -o, --open                     Whether to open the browser on serve
