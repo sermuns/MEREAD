@@ -1,6 +1,45 @@
 # Changelog
 
-## [0.7.0](https://github.com/sermuns/MEREAD/compare/v0.6.0..0.7.0) - 2026-04-21
+## [0.7.1](https://github.com/sermuns/MEREAD/compare/v0.7.0..0.7.1) - 2026-06-17
+
+### 🐛 Bug Fixes
+
+- **(docs)** re-format help by @sermuns in [c7bf6a6](https://github.com/sermuns/MEREAD/commit/c7bf6a6916796babce30c3120f8f5b965edc03ec)
+- make copy-to-clipboard icons use `currentColor` by @sermuns in [09ba3d7](https://github.com/sermuns/MEREAD/commit/09ba3d7329eb8f9cb86c0c7784c627118ab065fe)
+- actually set syntax highlighting theme.. i forgor. also start using pure-rust "fancy" syntect backend by @sermuns in [5213e27](https://github.com/sermuns/MEREAD/commit/5213e2792a738ac5f01b0e21c40781d83d84809e)
+
+### 💼 Other
+
+- **(deps)** bump askama from 0.15.6 to 0.16.0 by @dependabot[bot] in [#23](https://github.com/sermuns/MEREAD/pull/23)
+- **(deps)** bump actions/upload-pages-artifact from 3 to 5 by @dependabot[bot] in [#17](https://github.com/sermuns/MEREAD/pull/17)
+- **(deps)** bump docker/build-push-action from 6 to 7 by @dependabot[bot] in [#18](https://github.com/sermuns/MEREAD/pull/18)
+- **(deps)** bump actions/upload-artifact from 4 to 7 by @dependabot[bot] in [#21](https://github.com/sermuns/MEREAD/pull/21)
+- **(deps)** bump docker/metadata-action from 5 to 6 by @dependabot[bot] in [#20](https://github.com/sermuns/MEREAD/pull/20)
+- **(deps)** bump actions/deploy-pages from 4 to 5 by @dependabot[bot] in [#19](https://github.com/sermuns/MEREAD/pull/19)
+- **(deps)** bump math-core from 0.6.0 to 0.6.1 by @dependabot[bot] in [#22](https://github.com/sermuns/MEREAD/pull/22)
+- **(deps)** bump tokio from 1.52.1 to 1.52.2 by @dependabot[bot] in [#30](https://github.com/sermuns/MEREAD/pull/30)
+- **(deps)** bump tower-http from 0.6.8 to 0.6.10 by @dependabot[bot] in [#29](https://github.com/sermuns/MEREAD/pull/29)
+- **(deps)** bump docker/login-action from 3 to 4 by @dependabot[bot] in [#28](https://github.com/sermuns/MEREAD/pull/28)
+- **(deps)** bump softprops/action-gh-release from 2 to 3 by @dependabot[bot] in [#27](https://github.com/sermuns/MEREAD/pull/27)
+- **(deps)** bump actions/checkout from 4 to 6 by @dependabot[bot] in [#26](https://github.com/sermuns/MEREAD/pull/26)
+- **(deps)** bump actions/download-artifact from 4 to 8 by @dependabot[bot] in [#25](https://github.com/sermuns/MEREAD/pull/25)
+- **(deps)** bump actions/cache from 4 to 5 by @dependabot[bot] in [#24](https://github.com/sermuns/MEREAD/pull/24)
+- **(deps)** bump tokio from 1.52.2 to 1.52.3 by @dependabot[bot] in [#31](https://github.com/sermuns/MEREAD/pull/31)
+- **(deps)** bump open from 5.3.4 to 5.3.5 by @dependabot[bot] in [#32](https://github.com/sermuns/MEREAD/pull/32)
+- **(deps)** bump tower-http from 0.6.10 to 0.6.11 by @dependabot[bot] in [#33](https://github.com/sermuns/MEREAD/pull/33)
+- **(deps)** bump hyper from 1.9.0 to 1.10.0 by @dependabot[bot] in [#34](https://github.com/sermuns/MEREAD/pull/34)
+- **(deps)** bump math-core from 0.6.1 to 0.6.3 by @dependabot[bot] in [#35](https://github.com/sermuns/MEREAD/pull/35)
+- **(deps)** bump hyper from 1.10.0 to 1.10.1 by @dependabot[bot] in [#36](https://github.com/sermuns/MEREAD/pull/36)
+- add ci by @sermuns in [57621d8](https://github.com/sermuns/MEREAD/commit/57621d8bf50a67f5cc8d947768d1cc3b77920a56)
+
+### ⚙️ Miscellaneous Tasks
+
+- update to comrak 0.52 by @sermuns in [a06e288](https://github.com/sermuns/MEREAD/commit/a06e288e75c9c2a02933fb0f7334018a04babe5c)
+- update dependencies by @sermuns in [9bbb1f4](https://github.com/sermuns/MEREAD/commit/9bbb1f4881256f538271d9ed3353412191730bac)
+- add dependabot by @sermuns in [f2d889e](https://github.com/sermuns/MEREAD/commit/f2d889e19acf562c499a6a45517d2d39f12ce67f)
+- add watch just recipe by @sermuns in [0003c16](https://github.com/sermuns/MEREAD/commit/0003c16c9575e12e6a830d152a3de95182bf7142)
+- release v0.7.1 by Samuel Åkesson in [49e3a34](https://github.com/sermuns/MEREAD/commit/49e3a34e468a1e93c37079e366fbe4284f3c653e)
+## [v0.7.0](https://github.com/sermuns/MEREAD/compare/v0.6.0..v0.7.0) - 2026-04-21
 
 ### 🚀 Features
 
@@ -16,7 +55,7 @@
 - use less dependency features (#12) by @sermuns in [c350a4f](https://github.com/sermuns/MEREAD/commit/c350a4f9f43a9f5552680252e9e6af28e23a8054)
 - use less syntect features (#12) by @sermuns in [508d5cc](https://github.com/sermuns/MEREAD/commit/508d5cc61934d48e37202f74c6bdd673b2a19f24)
 - remove cargo build from release by @sermuns in [08831b0](https://github.com/sermuns/MEREAD/commit/08831b0bf0cecf34df0e43892fb5bafb94bc97c8)
-- release v0.7.0 by Samuel Åkesson in [f1d0620](https://github.com/sermuns/MEREAD/commit/f1d0620b050bef358fd247b664421923c3595de6)
+- release v0.7.0 by @sermuns in [431a177](https://github.com/sermuns/MEREAD/commit/431a177b753f15687aad6c4c37c0026b0517d299)
 ## [v0.6.0](https://github.com/sermuns/MEREAD/compare/v0.5.0..v0.6.0) - 2026-03-19
 
 ### 🚀 Features
