@@ -10,3 +10,6 @@ release:
 push:
 	git push
 	git push --tags
+
+watch:
+	watchexec -r -i target -- cargo r --
