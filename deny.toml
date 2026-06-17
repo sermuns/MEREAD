@@ -1,0 +1,43 @@
+[licenses]
+allow = [
+    "MIT",
+    "Apache-2.0",
+    "Unicode-3.0",
+    "CC0-1.0",
+    "WTFPL",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "Unicode-DFS-2016",
+]
+confidence-threshold = 0.8
+
+[bans]
+multiple-versions = "warn"
+wildcards = "warn"
+
+# The graph highlighting used when creating dotgraphs for crates
+# with multiple versions
+# * lowest-version - The path to the lowest versioned duplicate is highlighted
+# * simplest-path - The path to the version with the fewest edges is highlighted
+# * all - Both lowest-version and simplest-path are used
+highlight = "all"
+
+# The default lint level for `default` features for crates that are members of
+# the workspace that is being checked. This can be overridden by allowing/denying
+# `default` on a crate-by-crate basis if desired.
+workspace-default-features = "warn"
+
+# The default lint level for `default` features for external crates that are not
+# members of the workspace. This can be overridden by allowing/denying `default`
+# on a crate-by-crate basis if desired.
+external-default-features = "warn"
+
+# If true, workspace members are automatically allowed even when using deny-by-default
+# This is useful for organizations that want to deny all external dependencies by default
+# but allow their own workspace crates without having to explicitly list them
+allow-workspace = false
+
+[sources]
+unknown-registry = "deny"
+unknown-git = "warn"
