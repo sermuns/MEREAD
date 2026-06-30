@@ -9,6 +9,10 @@ keywords = ["readme", "markdown", "preview", "server"]
 categories = ["command-line-utilities", "web-programming::http-server"]
 authors = ["Samuel Åkesson <sermuns@lysator.liu.se>"]
 
+[workspace]
+resolver = "3"
+members = ["meread-nvim"]
+
 [dependencies]
 askama = { version = "0.16", default-features = false, features = ["std", "derive"] }
 axum = { version = "0.8", default-features = false, features = ["tokio", "http1"] }
