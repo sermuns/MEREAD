@@ -18,7 +18,7 @@ color-eyre = { version = "0.6", default-features = false, features = ["track-cal
 comrak = { version = "0.53", default-features = false, features = ["bon", "shortcodes", "syntect"] }
 futures = { version = "0.3", default-features = false }
 hyper = { version = "1.10", default-features = false }
-math-core = "0.6"
+math-core = "0.7"
 mime_guess = { version = "2", default-features = false }
 notify = "9.0.0-rc.4"
 notify-debouncer-full = "0.8.0-rc.2"

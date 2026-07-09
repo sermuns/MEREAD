@@ -849,9 +849,9 @@ checksum = "47e1ffaa40ddd1f3ed91f717a33c8c0ee23fff369e3aa8772b9605cc1d22f4c3"
 
 [[package]]
 name = "math-core"
-version = "0.6.4"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9a33a5935fae660a9700751535d702f7e35a867c4bb3195dff139d4b8c7fa5f1"
+checksum = "0891c647629cf690fbc16d2969cc86e28b572e9d408b91f688de1024aa8a763b"
 dependencies = [
  "math-core-renderer-internal",
  "memchr",
@@ -864,12 +864,14 @@ dependencies = [
 
 [[package]]
 name = "math-core-renderer-internal"
-version = "0.6.4"
+version = "0.7.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "99fd44a34022e7bcdfde2f4aeef1cc8bad969f3f0f8bcaff96bd7797c45d3dfb"
+checksum = "ec7e875f83f6bcfcdd8af557aecba8dd3ab30d85647086b6db2d05fe51debaf8"
 dependencies = [
  "bitflags",
  "dtoa",
+ "percent-encoding",
+ "rustc-hash",
  "stable-arena",
  "static_assertions",
  "strum",
