@@ -1,0 +1,59 @@
+[package]
+name = "meread"
+version = "0.7.1"
+edition.workspace = true
+description = "preview github flavored markdown locally"
+repository.workspace = true
+license.workspace = true
+keywords = ["markdown", "preview", "readme", "server"]
+categories = ["command-line-utilities", "web-programming::http-server"]
+
+[dependencies]
+askama = {
+  version = "0.16",
+  default-features = false,
+  features = ["derive", "std"]
+}
+axum = {
+  version = "0.8",
+  default-features = false,
+  features = ["http1", "tokio"]
+}
+clap = { version = "4", features = ["derive"] }
+clap_mangen = "0.3"
+color-eyre = {
+  version = "0.6",
+  default-features = false,
+  features = ["track-caller"]
+}
+comrak = {
+  version = "0.53",
+  default-features = false,
+  features = ["bon", "shortcodes", "syntect"]
+}
+futures = { version = "0.3", default-features = false }
+hyper = { version = "1.10", default-features = false }
+math-core = "0.7"
+mime_guess = { version = "2", default-features = false }
+notify = "9.0.0-rc.4"
+notify-debouncer-full = "0.8.0-rc.2"
+open = "5"
+rust-embed = "8"
+syntect = {
+  version = "5",
+  default-features = false,
+  features = ["default-fancy"]
+}
+time = {
+  version = "0.3",
+  default-features = false,
+  features = ["formatting", "local-offset", "macros"]
+}
+tokio.workspace = true
+tokio-stream = {
+  version = "0.1",
+  default-features = false,
+  features = ["sync"]
+}
+tower-http = { version = "0.7", features = ["fs"] }
+two-face = { version = "0.5", features = ["syntect-default-fancy"] }

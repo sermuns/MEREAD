@@ -951,6 +951,7 @@ name = "meread-nvim"
 version = "0.1.0"
 dependencies = [
  "nvim-oxi",
+ "tokio",
 ]
 
 [[package]]

@@ -11,3 +11,4 @@ nvim-oxi = {
   git = "https://github.com/noib3/nvim-oxi",
   features = ["neovim-0-12"]
 }
+tokio.workspace = true

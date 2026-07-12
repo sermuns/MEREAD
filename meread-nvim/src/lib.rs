@@ -1,23 +1,18 @@
-use nvim_oxi::api::{self, opts::*, types::*};
-use nvim_oxi::{Dictionary, Function, Object, print};
+use nvim_oxi::{
+    Dictionary, Function, Object,
+    api::{self, types::*},
+    print,
+};
 
 #[nvim_oxi::plugin]
 fn meread() -> Dictionary {
     Dictionary::from_iter([("setup", Function::from_fn(setup))])
 }
 
-fn setup(_args: Object) {
-    let opts = CreateCommandOpts::builder()
-        .bang(true)
-        .desc("shows a greetings message")
-        .nargs(CommandNArgs::ZeroOrOne)
-        .build();
+fn setup(_: Object) {
+    api::create_user_command("MereadPreview", preview, &Default::default()).unwrap();
+}
 
-    let greetings = |args: CommandArgs| {
-        let who = args.args.unwrap_or("from Rust".to_owned());
-        let bang = if args.bang { "!" } else { "" };
-        print!("Hello {}{}", who, bang);
-    };
-
-    api::create_user_command("Greetings", greetings, &opts).unwrap();
+fn preview(_: CommandArgs) {
+    print!("Starting preview on http://localhost:3000");
 }
