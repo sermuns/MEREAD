@@ -146,7 +146,7 @@ async fn main() -> Result<()> {
         .route("/~~~meread-reload", get(reload_handler));
 
     if args.open {
-        open::that(format!("http://{}", &args.address)).ok();
+        open::that(format!("http://{}", args.address)).ok();
     }
 
     println!(
