@@ -6,6 +6,7 @@ use comrak::html::ChildRendering;
 use comrak::nodes::AlertType;
 use comrak::nodes::NodeValue;
 use comrak::{Arena, parse_document};
+use math_core::ConvertResult;
 use math_core::LatexToMathML;
 use math_core::MathDisplay;
 use std::fmt::Write;
@@ -86,7 +87,10 @@ create_formatter!(CustomFormatter, {
             return Ok(ChildRendering::Skip);
         }
         let display_mode = if node_math.display_math { MathDisplay::Block } else { MathDisplay::Inline };
-        let mathml = MATHML_CONVERTER.convert_with_local_counter(&node_math.literal, display_mode).unwrap();
+        let ConvertResult {
+            mathml,
+            ..
+        } = MATHML_CONVERTER.convert_with_local_state(&node_math.literal, display_mode).unwrap();
         context.write_str(&mathml)?;
     },
     NodeValue::Alert(ref alert) => |context, node, entering| {
