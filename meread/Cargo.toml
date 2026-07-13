@@ -1,0 +1,47 @@
+[package]
+name = "meread"
+version = "0.7.1"
+edition.workspace = true
+description = "preview github flavored markdown locally"
+repository.workspace = true
+license.workspace = true
+keywords = ["markdown", "preview", "readme", "server"]
+categories = ["command-line-utilities", "web-programming::http-server"]
+
+[dependencies]
+askama = {
+  version = "0.16",
+  default-features = false,
+  features = ["derive", "std"]
+}
+bus = "2.4"
+clap = { version = "4", features = ["derive"] }
+clap_mangen = "0.3"
+color-eyre = {
+  version = "0.6",
+  default-features = false,
+  features = ["track-caller"]
+}
+comrak = {
+  version = "0.53",
+  default-features = false,
+  features = ["bon", "shortcodes", "syntect"]
+}
+jiff = "0.2"
+math-core = "0.7"
+mime_guess = { version = "2", default-features = false }
+notify = "9.0.0-rc.4"
+notify-debouncer-full = "0.8.0-rc.2"
+open = "5"
+rouille = { version = "3.6", default-features = false }
+rust-embed = "8"
+syntect = {
+  version = "5",
+  default-features = false,
+  features = ["default-fancy"]
+}
+two-face = { version = "0.5", features = ["syntect-default-fancy"] }
+
+[features]
+default = ["stdout"]
+stdout = []

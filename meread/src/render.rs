@@ -1,43 +1,55 @@
 use askama::Template;
-use axum::body::Bytes;
-use color_eyre::{Result, eyre::Context, eyre::OptionExt};
-use comrak::create_formatter;
-use comrak::html::ChildRendering;
-use comrak::nodes::AlertType;
-use comrak::nodes::NodeValue;
-use comrak::{Arena, parse_document};
-use math_core::ConvertResult;
-use math_core::LatexToMathML;
-use math_core::MathDisplay;
-use std::fmt::Write;
-use std::fs;
-use std::path::{Path, PathBuf};
-use std::sync::LazyLock;
+use comrak::{
+    create_formatter,
+    html::ChildRendering,
+    nodes::{AlertType, NodeValue},
+};
+use math_core::{ConvertResult, LatexToMathML, MathDisplay};
+use std::{fmt::Write, sync::LazyLock};
+
+use crate::comrak_config::ComrakConfig;
+
+pub struct RawMarkdown {
+    pub content: String,
+    pub file_name: String,
+}
 
 pub struct RenderedMarkdown {
-    pub content: Bytes,
-    pub path: PathBuf,
+    pub content: String,
+    light: bool,
+    comrak_config: ComrakConfig,
+    pub file_name: String,
 }
 
 impl RenderedMarkdown {
-    pub fn new(path: &Path, light: bool) -> Result<Self> {
-        let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
+    pub fn new(
+        RawMarkdown {
+            content: markdown_content,
+            file_name,
+        }: RawMarkdown,
+        light: bool,
+        comrak_config: ComrakConfig,
+    ) -> color_eyre::Result<Self> {
+        let mut s = Self {
+            content: String::new(),
+            light,
+            comrak_config,
+            file_name,
+        };
 
-        let rendered_markdown = render_markdown(&markdown_content, path, light)?;
+        s.rebuild(&markdown_content)?;
 
-        Ok(Self {
-            content: rendered_markdown,
-            path: path.to_path_buf(),
-        })
+        Ok(s)
     }
 
-    pub fn rebuild(&mut self, light: bool) -> Result<()> {
-        let markdown_content =
-            fs::read_to_string(&self.path).context("Failed to read markdown file")?;
-
-        self.content = render_markdown(&markdown_content, &self.path, light)?;
-
-        Ok(())
+    pub fn rebuild(&mut self, markdown_content: &str) -> color_eyre::Result<()> {
+        render_markdown_to_html(
+            markdown_content,
+            &self.file_name,
+            self.light,
+            &self.comrak_config,
+            &mut self.content,
+        )
     }
 }
 
@@ -117,21 +129,17 @@ create_formatter!(CustomFormatter, {
     },
 });
 
-pub fn render_markdown(
+pub fn render_markdown_to_html(
     markdown_content: &str,
-    markdown_file_path: &Path,
+    file_name: &str,
     light: bool,
-) -> Result<Bytes> {
-    use crate::comrak_config::COMRAK_CONFIG;
-    let title = &markdown_file_path
-        .file_name()
-        .ok_or_eyre("weird path ending in ...")?
-        .to_string_lossy();
+    comrak_config: &ComrakConfig,
+    output: &mut String,
+) -> color_eyre::Result<()> {
+    output.clear();
 
-    let comrak_config = COMRAK_CONFIG.get().ok_or_eyre("failed getting config")?;
-
-    let arena = Arena::new();
-    let doc = parse_document(&arena, markdown_content, &comrak_config.options);
+    let arena = comrak::Arena::new();
+    let doc = comrak::parse_document(&arena, markdown_content, &comrak_config.options);
 
     let mut formatted = String::new();
     CustomFormatter::format_document_with_plugins(
@@ -141,12 +149,12 @@ pub fn render_markdown(
         &comrak_config.plugins,
     )?;
 
-    let rendered = HtmlTemplate {
-        title,
+    HtmlTemplate {
+        title: file_name,
         contents: &formatted,
         light,
     }
-    .render()?;
+    .render_into(output)?;
 
-    Ok(rendered.into())
+    Ok(())
 }

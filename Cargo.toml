@@ -1,48 +1,25 @@
-[package]
-name = "meread"
-version = "0.7.1"
-description = "preview github flavored markdown locally"
+[workspace]
+resolver = "3"
+members = ["meread", "meread-nvim"]
+
+[workspace.package]
+edition = "2024"
 repository = "https://github.com/sermuns/meread"
 license = "WTFPL"
-edition = "2024"
-keywords = ["readme", "markdown", "preview", "server"]
-categories = ["command-line-utilities", "web-programming::http-server"]
-authors = ["Samuel Åkesson <sermuns@lysator.liu.se>"]
 
-[dependencies]
-askama = { version = "0.16", default-features = false, features = ["std", "derive"] }
-axum = { version = "0.8", default-features = false, features = ["tokio", "http1"] }
-clap = { version = "4", features = ["derive"] }
-clap_mangen = "0.3"
-color-eyre = { version = "0.6", default-features = false, features = ["track-caller"] }
-comrak = { version = "0.53", default-features = false, features = ["bon", "shortcodes", "syntect"] }
-futures = { version = "0.3", default-features = false }
-hyper = { version = "1.10", default-features = false }
-math-core = "0.7"
-mime_guess = { version = "2", default-features = false }
-notify = "9.0.0-rc.4"
-notify-debouncer-full = "0.8.0-rc.2"
-open = "5"
-rust-embed = "8"
-syntect = { version = "5", default-features = false, features = ["default-fancy"] }
-time = { version = "0.3", default-features = false, features = ["formatting", "local-offset", "macros"] }
-tokio = { version = "1", features = ["macros", "rt"] }
-tokio-stream = { version = "0.1", default-features = false, features = ["sync"] }
-tower-http = { version = "0.7", features = ["fs"] }
-two-face = { version = "0.5", features = ["syntect-default-fancy"] }
+[workspace.lints.clippy]
+pedantic = { level = "warn", priority = -1 }
+
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+struct_excessive_bools = "allow"
+trivially_copy_pass_by_ref = "deny"
+uninlined_format_args = "allow"
 
 [profile.release]
 opt-level = 3
 debug = false
-panic = "unwind"
-lto = true
-codegen-units = 1
 strip = true
-
-[lints.clippy]
-pedantic = { level = "warn", priority = -1 }
-uninlined_format_args = "allow"
-trivially_copy_pass_by_ref = "deny"
-missing_errors_doc = "allow"
-missing_panics_doc = "allow"
-struct_excessive_bools = "allow"
+lto = true
+panic = "unwind"
+codegen-units = 1

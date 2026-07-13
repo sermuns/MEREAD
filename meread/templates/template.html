@@ -1,0 +1,30 @@
+<!doctype html>
+<html>
+
+<head>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<link rel="stylesheet" href="/styles.css" />
+
+	{%if light%}
+	<link rel="stylesheet" href="/styles-light.css" />
+	{%endif%}
+
+	<script src="/script.js"></script>
+	<title>{{ title }}</title>
+</head>
+
+<body>
+	{{ contents | safe }}
+</body>
+<script>
+	new WebSocket('/~~~meread-reload').onmessage = (e) => {
+		if (e.data) {
+			document.body.innerHTML = e.data
+		} else {
+			window.location.reload()
+		}
+	};
+</script>
+
+</html>

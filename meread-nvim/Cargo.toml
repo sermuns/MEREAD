@@ -1,0 +1,18 @@
+[package]
+name = "meread-nvim"
+version = "0.1.0"
+edition.workspace = true
+repository.workspace = true
+license.workspace = true
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+itertools = "0.15"
+meread = { path = "../meread", default-features = false }
+nvim-oxi = {
+  git = "https://github.com/noib3/nvim-oxi",
+  features = ["libuv", "neovim-0-12"]
+}
