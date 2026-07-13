@@ -7,6 +7,7 @@ edition = "2024"
 crate-type = ["cdylib"]
 
 [dependencies]
+meread.workspace = true
 nvim-oxi = {
   git = "https://github.com/noib3/nvim-oxi",
   features = ["neovim-0-12"]

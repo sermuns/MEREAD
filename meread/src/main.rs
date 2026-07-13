@@ -16,13 +16,7 @@ use time::{OffsetDateTime, format_description::BorrowedFormatItem, macros::forma
 use tokio::{net::TcpListener, sync::RwLock};
 use tower_http::services::ServeDir;
 
-mod assets;
-mod comrak_config;
-mod export;
-mod reload;
-mod render;
-
-use crate::{
+use meread::{
     assets::assets_handler,
     comrak_config::init_comrak_config,
     export::export,
@@ -139,7 +133,7 @@ async fn main() -> Result<()> {
     state.write().await.rebuild(args.light_mode)?;
 
     let app = Router::new()
-        .route("/", get(serve))
+        .route("/", get(create_rendered_response))
         .fallback_service(ServeDir::new(parent_dir).fallback(get(assets_handler)))
         .with_state(state)
         .layer(axum::middleware::from_fn(append_livereload_script))
@@ -160,7 +154,7 @@ async fn main() -> Result<()> {
     Ok(())
 }
 
-async fn serve(
+async fn create_rendered_response(
     State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
 ) -> impl IntoResponse {
     Html(rendered_markdown.read().await.content.clone())

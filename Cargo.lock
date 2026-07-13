@@ -950,6 +950,7 @@ dependencies = [
 name = "meread-nvim"
 version = "0.1.0"
 dependencies = [
+ "meread",
  "nvim-oxi",
  "tokio",
 ]

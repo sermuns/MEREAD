@@ -9,7 +9,7 @@ pub struct ComrakConfig {
     pub plugins: Plugins<'static>,
 }
 
-pub(crate) static COMRAK_CONFIG: OnceLock<ComrakConfig> = OnceLock::new();
+pub static COMRAK_CONFIG: OnceLock<ComrakConfig> = OnceLock::new();
 
 pub fn init_comrak_config(light: bool) -> Result<()> {
     let mut theme_set = ThemeSet::new();
