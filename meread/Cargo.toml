@@ -33,6 +33,7 @@ comrak = {
 }
 futures = { version = "0.3", default-features = false }
 hyper = { version = "1.10", default-features = false }
+jiff = "0.2"
 math-core = "0.7"
 mime_guess = { version = "2", default-features = false }
 notify = "9.0.0-rc.4"
@@ -43,11 +44,6 @@ syntect = {
   version = "5",
   default-features = false,
   features = ["default-fancy"]
-}
-time = {
-  version = "0.3",
-  default-features = false,
-  features = ["formatting", "local-offset", "macros"]
 }
 tokio.workspace = true
 tokio-stream = {

@@ -9,10 +9,10 @@ use color_eyre::{
     Result,
     eyre::{Context, ContextCompat},
 };
+use jiff::Zoned;
 use notify::EventKind::{Create, Modify, Remove};
 use notify_debouncer_full::{DebounceEventResult, new_debouncer};
 use std::{path::PathBuf, sync::Arc, time::Duration};
-use time::{OffsetDateTime, format_description::BorrowedFormatItem, macros::format_description};
 use tokio::{net::TcpListener, sync::RwLock};
 use tower_http::services::ServeDir;
 
@@ -23,9 +23,6 @@ use meread::{
     reload::{RELOAD_TX, append_livereload_script, reload_handler},
     render::RenderedMarkdown,
 };
-
-const SIMPLE_TIME_FORMAT: &[BorrowedFormatItem<'_>] =
-    format_description!("[hour]:[minute]:[second]");
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -101,18 +98,14 @@ async fn main() -> Result<()> {
                     .iter()
                     .any(|e| matches!(e.kind, Create(_) | Modify(_) | Remove(_)))
             {
-                let now = OffsetDateTime::now_local()
-                    .unwrap_or(OffsetDateTime::now_utc())
-                    .time()
-                    .format(SIMPLE_TIME_FORMAT)
-                    .unwrap_or("?".to_string());
+                let now_time = Zoned::now().time();
 
-                println!("[{now}] detected change, rebuilding...");
+                println!("[{now_time}] detected change, rebuilding...");
 
                 let state = state.clone();
                 rt.spawn(async move {
                     if let Err(e) = state.write().await.rebuild(args.light_mode) {
-                        eprintln!("[{now}] error during rebuild: {e}");
+                        eprintln!("[{now_time}] error during rebuild: {e}");
                     } else {
                         let _ = RELOAD_TX.send("reload".to_string());
                     }
