@@ -1,6 +1,39 @@
 # Changelog
 
-## [0.7.1](https://github.com/sermuns/MEREAD/compare/v0.7.0..0.7.1) - 2026-06-17
+## [v1.0.0](https://github.com/sermuns/MEREAD/compare/v0.7.1..v1.0.0) - 2026-07-13
+
+### 🚀 Features
+
+- **(refactor)** remove async and create neovim plugin (#46) by @sermuns in [#46](https://github.com/sermuns/MEREAD/pull/46)
+
+### 🐛 Bug Fixes
+
+- bump deps and allow yaml-rust and bincode by @sermuns in [3414ff6](https://github.com/sermuns/MEREAD/commit/3414ff66ec92923807610306d70e2f7fdd6b1e1b)
+
+### 💼 Other
+
+- **(deps)** bump deps by @sermuns in [eaa336d](https://github.com/sermuns/MEREAD/commit/eaa336da33912766e78043f0affab30b8949d81c)
+- **(deps)** bump tower-http from 0.6.11 to 0.7.0 by @dependabot[bot] in [#37](https://github.com/sermuns/MEREAD/pull/37)
+- **(deps)** bump actions/cache from 5 to 6 by @dependabot[bot] in [#38](https://github.com/sermuns/MEREAD/pull/38)
+- **(deps)** bump time from 0.3.49 to 0.3.51 by @dependabot[bot] in [#40](https://github.com/sermuns/MEREAD/pull/40)
+- **(deps)** bump actions/checkout from 6 to 7 by @dependabot[bot] in [#39](https://github.com/sermuns/MEREAD/pull/39)
+- **(deps)** bump open from 5.3.5 to 5.3.6 by @dependabot[bot] in [#41](https://github.com/sermuns/MEREAD/pull/41)
+- **(deps)** bump comrak from 0.52.0 to 0.53.0 by @dependabot[bot] in [#42](https://github.com/sermuns/MEREAD/pull/42)
+- **(deps)** bump time from 0.3.51 to 0.3.53 by @dependabot[bot] in [#43](https://github.com/sermuns/MEREAD/pull/43)
+- **(deps)** bump rust-embed from 8.11.0 to 8.12.0 by @dependabot[bot] in [#44](https://github.com/sermuns/MEREAD/pull/44)
+- **(deps)** bump math-core from 0.6.4 to 0.7.0 (#45) by @dependabot[bot] in [#45](https://github.com/sermuns/MEREAD/pull/45)
+
+### 🎨 Styling
+
+- satsify clippy by @sermuns in [399d0b5](https://github.com/sermuns/MEREAD/commit/399d0b5bdcf5237927886e50b56d17bd420ea4cd)
+
+### ⚙️ Miscellaneous Tasks
+
+- skip checks on intermediate release commit by @sermuns in [e1b5ad6](https://github.com/sermuns/MEREAD/commit/e1b5ad60e96949d67dac92f6e1b6901e3930aedf)
+- add cargo-deny by @sermuns in [241235e](https://github.com/sermuns/MEREAD/commit/241235e22745c1198940cbf2be4e54c017ecb452)
+- add cargo-deny-action by @sermuns in [ca8ec2f](https://github.com/sermuns/MEREAD/commit/ca8ec2f3d0e12a382666b06f000160da02ec345f)
+- release v1.0.0 by Samuel Åkesson in [079691d](https://github.com/sermuns/MEREAD/commit/079691d11853595c411c6019ec46b1e9fbedcd02)
+## [v0.7.1](https://github.com/sermuns/MEREAD/compare/v0.7.0..v0.7.1) - 2026-06-17
 
 ### 🐛 Bug Fixes
 
@@ -38,7 +71,7 @@
 - update dependencies by @sermuns in [9bbb1f4](https://github.com/sermuns/MEREAD/commit/9bbb1f4881256f538271d9ed3353412191730bac)
 - add dependabot by @sermuns in [f2d889e](https://github.com/sermuns/MEREAD/commit/f2d889e19acf562c499a6a45517d2d39f12ce67f)
 - add watch just recipe by @sermuns in [0003c16](https://github.com/sermuns/MEREAD/commit/0003c16c9575e12e6a830d152a3de95182bf7142)
-- release v0.7.1 by Samuel Åkesson in [49e3a34](https://github.com/sermuns/MEREAD/commit/49e3a34e468a1e93c37079e366fbe4284f3c653e)
+- release v0.7.1 by @sermuns in [cd80ca7](https://github.com/sermuns/MEREAD/commit/cd80ca7b719fd8b4889f86c9d318fa4fbfb7a038)
 ## [v0.7.0](https://github.com/sermuns/MEREAD/compare/v0.6.0..v0.7.0) - 2026-04-21
 
 ### 🚀 Features

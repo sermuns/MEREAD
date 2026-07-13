@@ -33,62 +33,55 @@ jobs:
             name: x86_64-pc-windows-msvc.zip
     runs-on: ${{ matrix.os }}
     steps:
-      - name: Setup | Checkout
-        uses: actions/checkout@v7
+      - uses: actions/checkout@v7
 
-      - name: Setup | Cache Cargo
-        uses: actions/cache@v6
+      - uses: Swatinem/rust-cache@v2
         with:
-          path: |
-            ~/.cargo/registry
-            ~/.cargo/git
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          shared-key: ${{ matrix.target }}
 
-      - name: Setup | Rust
-        uses: dtolnay/rust-toolchain@master
+      - uses: dtolnay/rust-toolchain@stable
         with:
-          toolchain: stable
           target: ${{ matrix.target }}
 
-      - name: Setup | cross
-        if: endsWith(matrix.target, '-unknown-linux-musl')
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cross
+      - if: ${{ endsWith(matrix.target, '-linux-musl') }}
+        uses: taiki-e/install-action@cross
 
-      - name: Build | Build
-        if: ${{ !endsWith(matrix.target, '-unknown-linux-musl') }}
-        run: cargo build --release --target ${{ matrix.target }}
+      - if: ${{ endsWith(matrix.target, '-linux-musl') }}
+        run: cross build --package ${{ env.CRATE_NAME }} --release --target ${{ matrix.target }}
 
-      - name: Build | Build (musl)
-        if: endsWith(matrix.target, '-unknown-linux-musl')
-        run: cross build --release --target ${{ matrix.target }}
+      - if: ${{ !endsWith(matrix.target , '-linux-musl') }}
+        run: cargo build --package ${{ env.CRATE_NAME }} --release --target ${{ matrix.target }}
 
-      - name: Post Setup | Extract tag name
-        shell: bash
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' }}
+        run: cargo build --package meread-nvim --release --target ${{ matrix.target }}
+
+      - shell: bash
         run: echo "tag=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
         id: extract_tag
 
-      - name: Post Setup | Prepare artifacts [Windows]
-        if: matrix.os == 'windows-latest'
+      - if: matrix.os == 'windows-latest'
+        shell: bash
         run: |
-          mkdir target/stage
+          mkdir -p target/stage
           cd target/${{ matrix.target }}/release
           7z a ../../stage/${{ env.CRATE_NAME }}-${{ steps.extract_tag.outputs.tag }}-${{ matrix.name }} ${{ env.CRATE_NAME }}.exe
-          cd -
-      - name: Post Setup | Prepare artifacts [-nix]
-        if: matrix.os != 'windows-latest'
+
+      - if: matrix.os != 'windows-latest'
         run: |
-          mkdir target/stage
+          mkdir -p target/stage
           cd target/${{ matrix.target }}/release
           tar czvf ../../stage/${{ env.CRATE_NAME }}-${{ steps.extract_tag.outputs.tag }}-${{ matrix.name }} ${{ env.CRATE_NAME }}
-          cd -
+
+      - if: ${{ matrix.target == 'x86_64-unknown-linux-gnu' }}
+        run: |
+          cd target/${{ matrix.target }}/release
+          cp libmeread_nvim.so ../../stage/meread-${{ steps.extract_tag.outputs.tag }}.so
+
       - name: Post Setup | Upload artifacts
         uses: actions/upload-artifact@v7
         with:
           name: ${{ env.CRATE_NAME }}-${{ steps.extract_tag.outputs.tag }}-${{ matrix.name }}
           path: target/stage/*
-          # Idempotency: overwrite artefact by name if we're rerunning the deployment
           overwrite: true
 
   github_release:

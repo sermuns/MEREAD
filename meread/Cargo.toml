@@ -1,6 +1,6 @@
 [package]
 name = "meread"
-version = "0.7.1"
+version.workspace = true
 edition.workspace = true
 description = "preview github flavored markdown locally"
 repository.workspace = true
