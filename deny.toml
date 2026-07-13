@@ -1,22 +1,28 @@
 [licenses]
 allow = [
-    "Apache-2.0",
-    "BSD-2-Clause",
-    "BSD-3-Clause",
-    "BSL-1.0",
-    "CC0-1.0",
-    "ISC",
-    "MIT",
-    "Unicode-3.0",
-    "Unicode-DFS-2016",
-    "WTFPL",
+  "Apache-2.0",
+  "BSD-2-Clause",
+  "BSD-3-Clause",
+  "BSL-1.0",
+  "CC0-1.0",
+  "ISC",
+  "MIT",
+  "Unicode-3.0",
+  "Unicode-DFS-2016",
+  "WTFPL",
 ]
 confidence-threshold = 0.8
 
 [advisories]
 ignore = [
-    { id = "RUSTSEC-2025-0141", reason = "bincode is used in syntect" },
-    { id = "RUSTSEC-2024-0320", reason = "yaml-rust is used in syntect" },
+  { id = "RUSTSEC-2025-0141", reason = "bincode is used in syntect" },
+  { id = "RUSTSEC-2024-0320", reason = "yaml-rust is used in syntect" },
+  { id = "RUSTSEC-2026-0194", reason = "syntect hasn't updated" },
+  { id = "RUSTSEC-2026-0195", reason = "syntect hasn't updated" },
+  { id = "RUSTSEC-2021-0146", reason = "rouille uses this, but I don't use multipart" },
+  { id = "RUSTSEC-2023-0081", reason = "rouille uses this, but I don't use multipart" },
+  { id = "RUSTSEC-2023-0050", reason = "rouille uses" },
+  { id = "RUSTSEC-2023-0028", reason = "rouille uses" },
 ]
 
 [bans]
@@ -27,15 +33,15 @@ workspace-default-features = "allow"
 external-default-features = "allow"
 allow-workspace = false
 deny = [
-    { crate = "git2", use-instead = "gix" },
-    { crate = "openssl", use-instead = "rustls" },
-    { crate = "openssl-sys", use-instead = "rustls" },
-    "libssh2-sys",
-    { crate = "cmake", use-instead = "cc" },
-    { crate = "windows", reason = "bloated and unnecessary", use-instead = "ideally inline bindings, practically, windows-sys" },
+  { crate = "git2", use-instead = "gix" },
+  { crate = "openssl", use-instead = "rustls" },
+  { crate = "openssl-sys", use-instead = "rustls" },
+  "libssh2-sys",
+  { crate = "cmake", use-instead = "cc" },
+  { crate = "windows", reason = "bloated and unnecessary", use-instead = "ideally inline bindings, practically, windows-sys" },
 ]
 skip-tree = [
-    { crate = "windows-sys", reason = "a foundational crate for many that bumps far too frequently to ever have a shared version" },
+  { crate = "windows-sys", reason = "a foundational crate for many that bumps far too frequently to ever have a shared version" },
 ]
 
 [sources]
