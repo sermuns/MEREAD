@@ -1,13 +1,14 @@
 use color_eyre::eyre::{Context, OptionExt, ensure};
 use std::{fs, path::Path};
 
-use crate::{assets::EmbeddedAssets, render::render_markdown};
+use crate::{assets::EmbeddedAsset, comrak_config::ComrakConfig, render::render_markdown_to_html};
 
 pub fn export(
     markdown_file_path: &Path,
     export_dir: &Path,
     force: bool,
     light_mode: bool,
+    comrak_config: &ComrakConfig,
 ) -> color_eyre::Result<()> {
     ensure!(
         force || !export_dir.exists(),
@@ -20,14 +21,21 @@ pub fn export(
     let markdown_content = fs::read_to_string(markdown_file_path)
         .context("failed to read markdown file for export")?;
 
-    let rendered_html = render_markdown(&markdown_content, markdown_file_path, light_mode)?;
+    let mut rendered_html = String::new();
+    render_markdown_to_html(
+        &markdown_content,
+        markdown_file_path,
+        light_mode,
+        comrak_config,
+        &mut rendered_html,
+    )?;
 
     fs::write(export_dir.join("index.html"), rendered_html).context("failed to write HTML")?;
 
-    for path in EmbeddedAssets::iter() {
+    for path in EmbeddedAsset::iter() {
         fs::write(
             export_dir.join(path.as_ref()),
-            EmbeddedAssets::get(&path)
+            EmbeddedAsset::get(&path)
                 .ok_or_eyre("failed getting asset")?
                 .data,
         )?;

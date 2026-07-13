@@ -9,7 +9,6 @@ license = "WTFPL"
 
 [workspace.dependencies]
 meread.path = "meread"
-tokio = { version = "1", features = ["macros", "rt"] }
 
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }

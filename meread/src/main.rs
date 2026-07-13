@@ -1,28 +1,7 @@
-use axum::{
-    Router,
-    extract::State,
-    response::{Html, IntoResponse},
-    routing::get,
-};
 use clap::{CommandFactory, Parser};
-use color_eyre::{
-    Result,
-    eyre::{Context, ContextCompat},
-};
-use jiff::Zoned;
-use notify::EventKind::{Create, Modify, Remove};
-use notify_debouncer_full::{DebounceEventResult, new_debouncer};
-use std::{path::PathBuf, sync::Arc, time::Duration};
-use tokio::{net::TcpListener, sync::RwLock};
-use tower_http::services::ServeDir;
+use std::path::PathBuf;
 
-use meread::{
-    assets::assets_handler,
-    comrak_config::init_comrak_config,
-    export::export,
-    reload::{RELOAD_TX, append_livereload_script, reload_handler},
-    render::RenderedMarkdown,
-};
+use meread::{comrak_config::ComrakConfig, export::export, watch_and_serve};
 
 #[derive(Parser, Debug)]
 #[command(version, about, long_about = None)]
@@ -56,8 +35,7 @@ struct Args {
     generate_manpage: bool,
 }
 
-#[tokio::main(flavor = "current_thread")]
-async fn main() -> Result<()> {
+fn main() -> color_eyre::Result<()> {
     color_eyre::config::HookBuilder::default()
         .display_env_section(false)
         .display_location_section(cfg!(debug_assertions))
@@ -77,78 +55,24 @@ async fn main() -> Result<()> {
         args.path
     };
 
-    init_comrak_config(args.light_mode)?;
+    let comrak_config = ComrakConfig::new(args.light_mode)?;
 
     if let Some(export_dir) = &args.export_dir {
-        export(&markdown_file_path, export_dir, args.force, args.light_mode)?;
+        export(
+            &markdown_file_path,
+            export_dir,
+            args.force,
+            args.light_mode,
+            &comrak_config,
+        )?;
         return Ok(());
     }
 
-    let state = Arc::new(RwLock::new(RenderedMarkdown::new(
+    watch_and_serve(
         &markdown_file_path,
         args.light_mode,
-    )?));
-
-    let mut debouncer = new_debouncer(Duration::from_millis(250), None, {
-        let rt = tokio::runtime::Handle::current();
-        let state = state.clone();
-        move |result: DebounceEventResult| {
-            if let Ok(events) = result
-                && events
-                    .iter()
-                    .any(|e| matches!(e.kind, Create(_) | Modify(_) | Remove(_)))
-            {
-                let now_time = Zoned::now().time();
-
-                println!("[{now_time}] detected change, rebuilding...");
-
-                let state = state.clone();
-                rt.spawn(async move {
-                    if let Err(e) = state.write().await.rebuild(args.light_mode) {
-                        eprintln!("[{now_time}] error during rebuild: {e}");
-                    } else {
-                        let _ = RELOAD_TX.send("reload".to_string());
-                    }
-                });
-            }
-        }
-    })
-    .context("failed to set up file watcher")?;
-
-    let parent_dir = markdown_file_path
-        .parent()
-        .context("trying to watch file in root / or something??")?;
-
-    debouncer
-        .watch(parent_dir, notify::RecursiveMode::Recursive)
-        .with_context(|| format!("failed to watch path: {}", markdown_file_path.display()))?;
-
-    state.write().await.rebuild(args.light_mode)?;
-
-    let app = Router::new()
-        .route("/", get(create_rendered_response))
-        .fallback_service(ServeDir::new(parent_dir).fallback(get(assets_handler)))
-        .with_state(state)
-        .layer(axum::middleware::from_fn(append_livereload_script))
-        .route("/~~~meread-reload", get(reload_handler));
-
-    if args.open {
-        open::that(format!("http://{}", args.address)).ok();
-    }
-
-    println!(
-        "serving {} on http://{}",
-        markdown_file_path.display(),
-        args.address
-    );
-
-    let listener = TcpListener::bind(&args.address).await?;
-    axum::serve(listener, app).await?;
-    Ok(())
-}
-
-async fn create_rendered_response(
-    State(rendered_markdown): State<Arc<RwLock<RenderedMarkdown>>>,
-) -> impl IntoResponse {
-    Html(rendered_markdown.read().await.content.clone())
+        comrak_config,
+        &args.address,
+        args.open,
+    )
 }
