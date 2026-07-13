@@ -15,35 +15,43 @@ use std::{
 
 use crate::comrak_config::ComrakConfig;
 
+pub struct RawMarkdown {
+    pub content: String,
+    pub file_name: String,
+}
+
 pub struct RenderedMarkdown {
     pub content: String,
     light: bool,
     comrak_config: ComrakConfig,
-    pub path: PathBuf,
+    pub file_name: String,
 }
 
 impl RenderedMarkdown {
-    pub fn new(path: &Path, light: bool, comrak_config: ComrakConfig) -> color_eyre::Result<Self> {
-        let markdown_content = fs::read_to_string(path).context("Failed to read markdown file")?;
-
-        let mut content = String::new();
-        render_markdown_to_html(&markdown_content, path, light, &comrak_config, &mut content)?;
-
-        Ok(Self {
-            content,
+    pub fn new(
+        RawMarkdown {
+            content: markdown_content,
+            file_name,
+        }: RawMarkdown,
+        light: bool,
+        comrak_config: ComrakConfig,
+    ) -> color_eyre::Result<Self> {
+        let mut s = Self {
+            content: String::new(),
             light,
             comrak_config,
-            path: path.to_path_buf(),
-        })
+            file_name,
+        };
+
+        s.rebuild(&markdown_content)?;
+
+        Ok(s)
     }
 
-    pub fn rebuild(&mut self) -> color_eyre::Result<()> {
-        let markdown_content =
-            fs::read_to_string(&self.path).context("Failed to read markdown file")?;
-
+    pub fn rebuild(&mut self, markdown_content: &str) -> color_eyre::Result<()> {
         render_markdown_to_html(
-            &markdown_content,
-            &self.path,
+            markdown_content,
+            &self.file_name,
             self.light,
             &self.comrak_config,
             &mut self.content,
@@ -129,17 +137,12 @@ create_formatter!(CustomFormatter, {
 
 pub fn render_markdown_to_html(
     markdown_content: &str,
-    markdown_file_path: &Path,
+    file_name: &str,
     light: bool,
     comrak_config: &ComrakConfig,
     output: &mut String,
 ) -> color_eyre::Result<()> {
     output.clear();
-
-    let title = &markdown_file_path
-        .file_name()
-        .ok_or_eyre("weird path ending in ...")?
-        .to_string_lossy();
 
     let arena = comrak::Arena::new();
     let doc = comrak::parse_document(&arena, markdown_content, &comrak_config.options);
@@ -153,7 +156,7 @@ pub fn render_markdown_to_html(
     )?;
 
     HtmlTemplate {
-        title,
+        title: file_name,
         contents: &formatted,
         light,
     }

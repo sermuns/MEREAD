@@ -968,6 +968,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a6cb138bb79a146c1bd460005623e142ef0181e3d0219cb493e02f7d08a35695"
 
 [[package]]
+name = "itertools"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8b4baf93f58d4425749ca49a51c50ebab072c5df6994d08fed93541c331481dc"
+dependencies = [
+ "either",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1154,6 +1163,7 @@ dependencies = [
 name = "meread-nvim"
 version = "0.1.0"
 dependencies = [
+ "itertools",
  "meread",
  "nvim-oxi",
 ]
@@ -1338,6 +1348,7 @@ source = "git+https://github.com/noib3/nvim-oxi#7ad27a7d3c8a72c34e7b9914eb77fb06
 dependencies = [
  "mlua",
  "nvim-oxi-api",
+ "nvim-oxi-libuv",
  "nvim-oxi-luajit",
  "nvim-oxi-macros",
  "nvim-oxi-types",
@@ -1355,6 +1366,15 @@ dependencies = [
  "nvim-oxi-types",
  "serde",
  "serde_repr",
+ "thiserror",
+]
+
+[[package]]
+name = "nvim-oxi-libuv"
+version = "0.6.0"
+source = "git+https://github.com/noib3/nvim-oxi#7ad27a7d3c8a72c34e7b9914eb77fb0644ff3f65"
+dependencies = [
+ "nvim-oxi-luajit",
  "thiserror",
 ]
 

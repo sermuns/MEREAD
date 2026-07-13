@@ -1,77 +1,63 @@
 use std::{
-    path::Path,
-    sync::{Arc, Mutex},
+    sync::{Arc, Mutex, mpsc::Receiver},
     thread,
     time::Duration,
 };
 
 use bus::{Bus, BusReader};
-use color_eyre::eyre::{Context, ContextCompat};
-use jiff::Zoned;
-use notify::EventKind;
-use notify_debouncer_full::{DebounceEventResult, new_debouncer};
 use rouille::{Response, ResponseBody, try_or_400, websocket};
 
-use crate::{assets::EmbeddedAsset, comrak_config::ComrakConfig, render::RenderedMarkdown};
-
+use crate::{
+    assets::EmbeddedAsset,
+    comrak_config::ComrakConfig,
+    render::{RawMarkdown, RenderedMarkdown},
+};
 pub mod assets;
 pub mod comrak_config;
 pub mod export;
 pub mod render;
 
-pub fn watch_and_serve(
-    markdown_file_path: &Path,
+pub fn serve_and_rebuild_on_receive(
+    markdown_content_receiver: Receiver<RawMarkdown>,
     light_mode: bool,
     comrak_config: ComrakConfig,
     address: &str,
     open: bool,
 ) -> color_eyre::Result<()> {
+    let initial_markdown = markdown_content_receiver.recv().unwrap();
     let rendered_markdown = Arc::new(Mutex::new(RenderedMarkdown::new(
-        markdown_file_path,
+        initial_markdown,
         light_mode,
         comrak_config,
     )?));
 
     let reload_bus = Arc::new(Mutex::new(Bus::new(1)));
-
-    let mut debouncer = new_debouncer(Duration::from_millis(100), None, {
-        let rendered_markdown = Arc::clone(&rendered_markdown);
+    std::thread::spawn({
         let reload_bus = Arc::clone(&reload_bus);
-        move |result: DebounceEventResult| {
-            if let Ok(events) = result
-                && events.iter().any(|e| {
-                    matches!(
-                        e.kind,
-                        EventKind::Create(_) | EventKind::Modify(_) | EventKind::Remove(_)
-                    )
-                })
-            {
-                let now_time = Zoned::now().time();
+        let rendered_markdown = Arc::clone(&rendered_markdown);
+        move || {
+            for RawMarkdown { mut content, .. } in &markdown_content_receiver {
+                // debounce
+                while let Ok(RawMarkdown { content: newer, .. }) =
+                    markdown_content_receiver.recv_timeout(Duration::from_millis(50))
+                {
+                    content = newer;
+                }
 
-                println!("[{}] file changed, rebuilding...", now_time);
-
-                rendered_markdown.lock().unwrap().rebuild().unwrap();
-                let _ = reload_bus.lock().unwrap().try_broadcast(());
+                rendered_markdown.lock().unwrap().rebuild(&content).unwrap();
+                reload_bus.lock().unwrap().broadcast(());
             }
         }
-    })
-    .context("failed to set up file watcher")?;
-
-    let parent_dir = markdown_file_path
-        .parent()
-        .context("trying to watch file in root / or something??")?;
-
-    debouncer
-        .watch(parent_dir, notify::RecursiveMode::Recursive)
-        .with_context(|| format!("failed to watch path: {}", markdown_file_path.display()))?;
+    });
 
     if open {
         open::that(format!("http://{}", address)).ok();
     }
 
+    #[cfg(feature = "stdout")]
     println!(
         "serving {} on http://{}",
-        markdown_file_path.display(),
+        rendered_markdown.lock().unwrap().file_name,
         address
     );
 
@@ -108,7 +94,7 @@ pub fn watch_and_serve(
 
             let rendered_markdown = rendered_markdown.lock().unwrap();
 
-            if path.is_empty() || path == &rendered_markdown.path {
+            if path.is_empty() || path == &rendered_markdown.file_name {
                 Response::html(rendered_markdown.content.clone())
             } else {
                 EmbeddedAsset::create_response(path).unwrap_or(Response::empty_404())

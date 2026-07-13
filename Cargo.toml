@@ -7,9 +7,6 @@ edition = "2024"
 repository = "https://github.com/sermuns/meread"
 license = "WTFPL"
 
-[workspace.dependencies]
-meread.path = "meread"
-
 [workspace.lints.clippy]
 pedantic = { level = "warn", priority = -1 }
 

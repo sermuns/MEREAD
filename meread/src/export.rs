@@ -21,10 +21,12 @@ pub fn export(
     let markdown_content = fs::read_to_string(markdown_file_path)
         .context("failed to read markdown file for export")?;
 
+    let markdown_file_name = markdown_file_path.file_name().unwrap();
+
     let mut rendered_html = String::new();
     render_markdown_to_html(
         &markdown_content,
-        markdown_file_path,
+        markdown_file_name.to_str().unwrap(),
         light_mode,
         comrak_config,
         &mut rendered_html,
@@ -40,6 +42,9 @@ pub fn export(
                 .data,
         )?;
     }
+
+    #[cfg(feature = "stdout")]
     println!("Exported to {}", export_dir.display());
+
     Ok(())
 }

@@ -41,3 +41,7 @@ syntect = {
   features = ["default-fancy"]
 }
 two-face = { version = "0.5", features = ["syntect-default-fancy"] }
+
+[features]
+default = ["stdout"]
+stdout = []
