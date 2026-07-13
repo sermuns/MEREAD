@@ -5,14 +5,13 @@
 <div align="center">
   <p>
   <em>
-      Locally preview how GitHub will render your Markdown files.
+    Preview GitHub flavored markdown offline
   </em>
   </p>
   <a href="https://github.com/sermuns/meread/releases/latest">
     <img alt="release-badge" src="https://img.shields.io/github/v/release/sermuns/meread.svg"></a>
   <a href="https://github.com/sermuns/meread/blob/main/LICENSE">
     <img alt="WTFPL" src="https://img.shields.io/badge/License-WTFPL-brightgreen.svg"></a>
-  <a href="https://crates.io/crates/meread"><img src="https://img.shields.io/crates/v/meread.svg" alt="Version info"></a>
 </div>
 
 ---
@@ -38,7 +37,38 @@ There are other tools that get the job done, better or worse, but they all have 
 | [gh markdown-preview](https://github.com/yusukebe/gh-markdown-preview)   | Go         | Is meant to be used as extension in `gh`, GitHub's CLI.                                         |
 | [markdown-preview.nvim](https://github.com/iamcco/markdown-preview.nvim) | Typescript | Requires Neovim.                                                                                |
 
-## Usage
+## The Neovim plugin, `meread-nvim`
+
+### Installation
+
+For example, using [`vim.pack`](https://neovim.io/doc/user/pack/#vim.pack):
+
+```lua
+vim.pack.add {
+	{
+		src = 'https://github.com/sermuns/MEREAD',
+		version = vim.version.range('1'),
+	},
+}
+```
+
+Then, you have to run the `setup` to get the functions loaded. It is also useful to bind the preview action to some keybind.
+
+Advisably, you would do this in a `ftplugin` for markdown by creating the file under `~/.config/nvim/ftplugin/markdown.lua`:
+
+```lua
+require('meread').setup {}
+
+vim.keymap.set(
+	'n',
+	'<F10>',
+	function()
+		vim.cmd "MereadPreview"
+	end
+)
+```
+
+## The command-line tool, `meread`
 
 ```present cargo run -- -h
 preview github flavored markdown locally
@@ -59,9 +89,9 @@ Options:
   -V, --version                  Print version
 ```
 
-## Installation
+### Installation
 
-### From prebuilt binaries
+#### From prebuilt binaries
 
 For each version, prebuilt binaries are automatically built for Linux, MacOS and Windows.
 
@@ -69,32 +99,38 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
   latest release from the [releases page](https://github.com/sermuns/meread/releases/latest).
 
 - Using [`cargo-binstall`](https://github.com/cargo-bins/cargo-binstall):
+
   ```bash
   cargo binstall meread
   ```
 
 - Using [`ubi`](https://github.com/houseabsolute/ubi):
+
   ```bash
   ubi -p sermuns/meread
   ```
 
 - Using [`mise`](https://github.com/jdx/mise):
+
   ```bash
   # `ubi` under the hood
   mise use -g ubi:sermuns/meread
   ```
+
   ```bash
   # `cargo-binstall` under the hood
   mise use -g cargo:meread
   ```
 
 - Using nix flakes (one-off):
+
   ```bash
   nix run github:sermuns/meread
   ```
 
 - Using nix flakes:
   1. Add MEREAD to your system `flake.nix`'s inputs
+
      ```nix
      {
        inputs = {
@@ -106,7 +142,9 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
        };
      }
      ```
+
   2. Add the MEREAD package to your `environment.systemPackages` list
+
      ```nix
      {
        pkgs,
@@ -117,9 +155,10 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
        ];
      }
      ```
+
   3. Rebuild your system with `nixos-rebuild` (or `darwin-rebuild` on MacOS)
 
-### From source
+#### From source
 
 - ```bash
   cargo install meread
@@ -131,7 +170,7 @@ For each version, prebuilt binaries are automatically built for Linux, MacOS and
   cargo install
   ```
 
-## Manpages
+### Manpages
 
 Can be installed by
 
@@ -139,4 +178,3 @@ Can be installed by
 mkdir -p ~/.local/share/man/man1/
 meread --generate-manpage > ~/.local/share/man/man1/meread.1
 ```
-
