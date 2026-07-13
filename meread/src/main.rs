@@ -88,7 +88,7 @@ fn main() -> color_eyre::Result<()> {
         })
         .unwrap();
 
-    let mut debouncer = new_debouncer(Duration::from_millis(100), None, {
+    let mut debouncer = new_debouncer(Duration::from_millis(10), None, {
         let markdown_file_path = markdown_file_path.clone();
         move |result: DebounceEventResult| {
             let Ok(events) = result else {
