@@ -5,7 +5,7 @@ use meread::{comrak_config::ComrakConfig, render::RawMarkdown};
 use nvim_oxi::{
     Dictionary, Function, Object,
     api::{
-        self, Buffer, get_current_buf,
+        self, Buffer,
         opts::{BufAttachOpts, OnLinesArgs},
         types::*,
     },

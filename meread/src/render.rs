@@ -1,17 +1,11 @@
 use askama::Template;
-use color_eyre::{eyre::Context, eyre::OptionExt};
 use comrak::{
     create_formatter,
     html::ChildRendering,
     nodes::{AlertType, NodeValue},
 };
 use math_core::{ConvertResult, LatexToMathML, MathDisplay};
-use std::{
-    fmt::Write,
-    fs,
-    path::{Path, PathBuf},
-    sync::LazyLock,
-};
+use std::{fmt::Write, sync::LazyLock};
 
 use crate::comrak_config::ComrakConfig;
 

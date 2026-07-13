@@ -94,7 +94,7 @@ pub fn serve_and_rebuild_on_receive(
 
             let rendered_markdown = rendered_markdown.lock().unwrap();
 
-            if path.is_empty() || path == &rendered_markdown.file_name {
+            if path.is_empty() || path == rendered_markdown.file_name {
                 Response::html(rendered_markdown.content.clone())
             } else {
                 EmbeddedAsset::create_response(path).unwrap_or(Response::empty_404())
