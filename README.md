@@ -59,6 +59,7 @@ Advisably, you would do this in a `ftplugin` for markdown by creating the file u
 ```lua
 require('meread').setup {}
 
+-- start preview by pressing F10
 vim.keymap.set(
 	'n',
 	'<F10>',
