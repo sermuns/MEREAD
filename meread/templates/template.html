@@ -18,8 +18,12 @@
 	{{ contents | safe }}
 </body>
 <script>
-	new EventSource('/~~~meread-reload').onmessage = (e) => {
-		if (e.data === 'reload') window.location.reload()
+	new WebSocket('/~~~meread-reload').onmessage = (e) => {
+		if (e.data) {
+			document.body.innerHTML = e.data
+		} else {
+			window.location.reload()
+		}
 	};
 </script>
 

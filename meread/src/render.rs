@@ -134,6 +134,8 @@ pub fn render_markdown_to_html(
     comrak_config: &ComrakConfig,
     output: &mut String,
 ) -> color_eyre::Result<()> {
+    output.clear();
+
     let title = &markdown_file_path
         .file_name()
         .ok_or_eyre("weird path ending in ...")?
