@@ -1,6 +1,6 @@
 local M = {}
 
-local VERSION = "v1.0.0"
+local VERSION = "v1.0.1"
 
 local library_filename = "meread-" .. VERSION .. ".so"
 local meread_data_dir = vim.fs.joinpath(vim.fn.stdpath("data"), "meread")

@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.1](https://github.com/sermuns/MEREAD/compare/v1.0.0..1.0.1) - 2026-07-13
+
+### 🚀 Features
+
+- **(meread-nvim)** create init.lua by Samuel Åkesson in [be30d05](https://github.com/sermuns/MEREAD/commit/be30d056aaa35e80632b862d649be38fb710841d)
+
+### 🐛 Bug Fixes
+
+- **(meread-nvim)** open preview on start by Samuel Åkesson in [2d37d91](https://github.com/sermuns/MEREAD/commit/2d37d91b9118ba81d9ffebb4ae8a0e4cf161518b)
 ## [v1.0.0](https://github.com/sermuns/MEREAD/compare/v0.7.1..v1.0.0) - 2026-07-13
 
 ### 🚀 Features
@@ -32,7 +41,7 @@
 - skip checks on intermediate release commit by @sermuns in [e1b5ad6](https://github.com/sermuns/MEREAD/commit/e1b5ad60e96949d67dac92f6e1b6901e3930aedf)
 - add cargo-deny by @sermuns in [241235e](https://github.com/sermuns/MEREAD/commit/241235e22745c1198940cbf2be4e54c017ecb452)
 - add cargo-deny-action by @sermuns in [ca8ec2f](https://github.com/sermuns/MEREAD/commit/ca8ec2f3d0e12a382666b06f000160da02ec345f)
-- release v1.0.0 by Samuel Åkesson in [079691d](https://github.com/sermuns/MEREAD/commit/079691d11853595c411c6019ec46b1e9fbedcd02)
+- release v1.0.0 by @sermuns in [658834c](https://github.com/sermuns/MEREAD/commit/658834c8784e14548cf020e7c82a2feafb276a6b)
 ## [v0.7.1](https://github.com/sermuns/MEREAD/compare/v0.7.0..v0.7.1) - 2026-06-17
 
 ### 🐛 Bug Fixes
