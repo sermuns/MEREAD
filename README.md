@@ -39,6 +39,8 @@ There are other tools that get the job done, better or worse, but they all have 
 
 ## The Neovim plugin, `meread-nvim`
 
+https://github.com/user-attachments/assets/63021cf3-2843-4276-b126-9b99dd745de3
+
 ### Installation
 
 For example, using [`vim.pack`](https://neovim.io/doc/user/pack/#vim.pack):
@@ -70,6 +72,8 @@ vim.keymap.set(
 ```
 
 ## The command-line tool, `meread`
+
+https://github.com/user-attachments/assets/cae9935d-fba3-47aa-9ff7-bab59a070802
 
 ```present cargo run -- -h
 preview github flavored markdown locally
