@@ -1,6 +1,6 @@
 use clap::{CommandFactory, Parser};
 use color_eyre::eyre::{Context, ContextCompat};
-use jiff::Zoned;
+use jiff::ZonedDateTime;
 use notify::EventKind;
 use notify_debouncer_full::{DebounceEventResult, new_debouncer};
 use std::{fs, path::PathBuf, sync::mpsc, time::Duration};
@@ -108,7 +108,7 @@ fn main() -> color_eyre::Result<()> {
                 .iter()
                 .any(|event| event.paths.contains(&markdown_file_path))
             {
-                let now_time = Zoned::now().time();
+                let now_time = ZonedDateTime::now().time();
                 #[cfg(feature = "stdout")]
                 println!("[{}] file changed, rebuilding..", now_time);
             }
