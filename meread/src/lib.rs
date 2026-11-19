@@ -84,7 +84,7 @@ pub fn serve_and_rebuild_on_receive(
 
                 thread::spawn(move || {
                     let ws = websocket.recv().unwrap();
-                    reload_handler_thread(ws, rendered_markdown, reload_rx)
+                    reload_handler_thread(ws, &rendered_markdown, reload_rx);
                 });
 
                 return response;
@@ -105,10 +105,10 @@ pub fn serve_and_rebuild_on_receive(
 
 fn reload_handler_thread(
     mut ws: websocket::Websocket,
-    rendered_markdown: Arc<Mutex<RenderedMarkdown>>,
+    rendered_markdown: &Arc<Mutex<RenderedMarkdown>>,
     reload_rx: BusReader<()>,
 ) {
-    for _ in reload_rx.into_iter() {
+    for () in reload_rx {
         let rendered_markdown = rendered_markdown.lock().unwrap();
         ws.send_text(&rendered_markdown.content).unwrap();
     }

@@ -7,7 +7,7 @@ use nvim_oxi::{
     api::{
         self, Buffer,
         opts::{BufAttachOpts, OnLinesArgs},
-        types::*,
+        types::CommandArgs,
     },
     print,
 };
