@@ -27,7 +27,7 @@ comrak = {
   default-features = false,
   features = ["bon", "shortcodes", "syntect"]
 }
-jiff = "0.2"
+jiff = "1.0"
 math-core = "0.9"
 mime_guess = { version = "2", default-features = false }
 notify = "9.0.0-rc.4"
