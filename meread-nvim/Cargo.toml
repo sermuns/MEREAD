@@ -16,3 +16,6 @@ nvim-oxi = {
   git = "https://github.com/noib3/nvim-oxi",
   features = ["libuv", "neovim-0-12"]
 }
+
+[lints]
+workspace = true
