@@ -17,12 +17,12 @@ confidence-threshold = 0.8
 ignore = [
   { id = "RUSTSEC-2025-0141", reason = "bincode is used in syntect" },
   { id = "RUSTSEC-2024-0320", reason = "yaml-rust is used in syntect" },
-  { id = "RUSTSEC-2026-0194", reason = "syntect hasn't updated" },
-  { id = "RUSTSEC-2026-0195", reason = "syntect hasn't updated" },
+
   { id = "RUSTSEC-2021-0146", reason = "rouille uses this, but I don't use multipart" },
-  { id = "RUSTSEC-2023-0081", reason = "rouille uses this, but I don't use multipart" },
-  { id = "RUSTSEC-2023-0050", reason = "rouille uses" },
   { id = "RUSTSEC-2023-0028", reason = "rouille uses" },
+  { id = "RUSTSEC-2023-0050", reason = "rouille uses" },
+  { id = "RUSTSEC-2023-0081", reason = "rouille uses this, but I don't use multipart" },
+  { id = "RUSTSEC-2026-0543", reason = "rouille uses" },
 ]
 
 [bans]
